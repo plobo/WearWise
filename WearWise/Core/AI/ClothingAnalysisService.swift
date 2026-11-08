@@ -3,7 +3,10 @@ import Foundation
 
 /// Application-level interface for analysing a clothing photo.
 protocol ClothingAnalysisService: Sendable {
-    func analyze(_ image: CGImage) async throws -> ClothingAnalysis
+    /// - Parameters:
+    ///   - image: The full, upright photo. Used for classification.
+    ///   - cutout: The background-removed item, if segmentation succeeded. Used for colours.
+    func analyze(_ image: CGImage, cutout: CGImage?) async throws -> ClothingAnalysis
 }
 
 enum ClothingAnalysisError: LocalizedError {
@@ -19,10 +22,10 @@ struct DefaultClothingAnalysisService: ClothingAnalysisService {
     var classifier = VisionClassifier()
     var interpreter = FoundationModelsClothingInterpreter()
 
-    func analyze(_ image: CGImage) async throws -> ClothingAnalysis {
+    func analyze(_ image: CGImage, cutout: CGImage?) async throws -> ClothingAnalysis {
         let labels = try await classifier.classify(image)
         try Task.checkCancellation()
-        let colors = await Self.measureColors(image)
+        let colors = await Self.measureColors(image, cutout: cutout)
         try Task.checkCancellation()
 
         do {
@@ -40,9 +43,14 @@ struct DefaultClothingAnalysisService: ClothingAnalysisService {
         }
     }
 
+    /// Prefers the cut-out, where every opaque pixel belongs to the item.
     @concurrent
-    private static func measureColors(_ image: CGImage) async -> [ColorShare] {
-        DominantColorAnalyzer.dominantColors(in: image)
+    private static func measureColors(_ image: CGImage, cutout: CGImage?) async -> [ColorShare] {
+        if let cutout {
+            let colors = DominantColorAnalyzer.dominantColors(inCutout: cutout)
+            if !colors.isEmpty { return colors }
+        }
+        return DominantColorAnalyzer.dominantColors(in: image)
     }
 
     static func fallback(labels: [VisionLabel], colors: [ColorShare], reason: String) throws -> ClothingAnalysis {

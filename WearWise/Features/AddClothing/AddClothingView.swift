@@ -35,7 +35,11 @@ struct AddClothingView: View {
         }
         .task {
             if model == nil {
-                model = AddClothingModel(processor: dependencies.imageProcessor, analysisService: dependencies.analysisService)
+                model = AddClothingModel(
+                    processor: dependencies.imageProcessor,
+                    segmenter: dependencies.segmenter,
+                    analysisService: dependencies.analysisService
+                )
             }
         }
     }
@@ -111,13 +115,17 @@ private struct AddClothingForm: View {
             case .preparing:
                 ProgressView("Preparing photo…").frame(maxWidth: .infinity)
             case .ready(_, let image):
-                Image(uiImage: image)
+                let showingCutout = model.activeCutout != nil
+                Image(uiImage: showingCutout ? (model.cutoutPreview ?? image) : image)
                     .resizable()
                     .scaledToFit()
+                    .padding(showingCutout ? 16 : 0)
                     .frame(maxHeight: 300)
                     .frame(maxWidth: .infinity)
+                    .background(showingCutout ? Theme.cutoutBackground : .clear)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
-                    .accessibilityLabel("Photo of the item")
+                    .accessibilityLabel(showingCutout ? "Item with background removed" : "Photo of the item")
+                backgroundRow
             case .failed(let message):
                 Label(message, systemImage: "exclamationmark.triangle").foregroundStyle(.red)
             }
@@ -133,6 +141,37 @@ private struct AddClothingForm: View {
             PhotosPicker(selection: $pickerItem, matching: .images) {
                 Label(libraryTitle, systemImage: "photo.on.rectangle")
             }
+        }
+    }
+
+    @ViewBuilder
+    private var backgroundRow: some View {
+        switch model.background {
+        case .idle:
+            EmptyView()
+        case .removing:
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Removing background…").foregroundStyle(.secondary)
+            }
+        case .removed:
+            Toggle(isOn: Binding(get: { model.useCutout }, set: { model.setUseCutout($0) })) {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Remove background")
+                        Text("Colours are measured from the item only.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "scissors")
+                }
+            }
+            .disabled(model.isAnalyzing)
+        case .unavailable:
+            Label("Couldn't separate the item from the background, so the full photo is used.", systemImage: "scissors")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
     }
 

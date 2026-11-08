@@ -9,6 +9,7 @@ final class AppDependencies {
     let wardrobe: WardrobeStore
     let analysisService: any ClothingAnalysisService
     let imageProcessor: ImageProcessor
+    let segmenter: any ForegroundSegmenting
     /// Set when persistent storage couldn't be opened and the app fell back to memory.
     let storageWarning: String?
 
@@ -19,11 +20,13 @@ final class AppDependencies {
         imageStore: LocalImageStore,
         analysisService: any ClothingAnalysisService = DefaultClothingAnalysisService(),
         imageProcessor: ImageProcessor = ImageProcessor(),
+        segmenter: any ForegroundSegmenting = ForegroundSegmenter(),
         storageWarning: String? = nil
     ) {
         self.container = container
         self.analysisService = analysisService
         self.imageProcessor = imageProcessor
+        self.segmenter = segmenter
         self.storageWarning = storageWarning
         wardrobe = WardrobeStore(repository: SwiftDataClothingRepository(container: container), imageStore: imageStore)
         #if DEBUG

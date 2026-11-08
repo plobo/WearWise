@@ -41,11 +41,57 @@ enum WardrobeSchemaV1: VersionedSchema {
     }
 }
 
-typealias ClothingItemRecord = WardrobeSchemaV1.ClothingItemRecord
+/// V2 adds an optional background-removed image.
+enum WardrobeSchemaV2: VersionedSchema {
+    static let versionIdentifier = Schema.Version(2, 0, 0)
+    static var models: [any PersistentModel.Type] { [ClothingItemRecord.self] }
+
+    @Model
+    final class ClothingItemRecord {
+        @Attribute(.unique) var id: UUID
+        var name: String
+        var categoryRaw: String
+        var primaryColorRaw: String
+        var secondaryColorsRaw: [String]
+        var patternRaw: String
+        var formalityRaw: String
+        var isFavorite: Bool
+        var imagePath: String
+        var thumbnailPath: String
+        var cutoutPath: String?
+        var dateAdded: Date
+        var dateModified: Date
+        var aiStatusRaw: String
+
+        init(item: ClothingItem) {
+            id = item.id
+            name = item.name
+            categoryRaw = item.category.rawValue
+            primaryColorRaw = item.primaryColor.rawValue
+            secondaryColorsRaw = item.secondaryColors.map(\.rawValue)
+            patternRaw = item.pattern.rawValue
+            formalityRaw = item.formality.rawValue
+            isFavorite = item.isFavorite
+            imagePath = item.imagePath
+            thumbnailPath = item.thumbnailPath
+            cutoutPath = item.cutoutPath
+            dateAdded = item.dateAdded
+            dateModified = item.dateModified
+            aiStatusRaw = item.aiStatus.rawValue
+        }
+    }
+}
+
+/// The current record type. Older versions stay defined so stores can be migrated.
+typealias ClothingItemRecord = WardrobeSchemaV2.ClothingItemRecord
+typealias CurrentWardrobeSchema = WardrobeSchemaV2
 
 enum WardrobeMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [WardrobeSchemaV1.self] }
-    static var stages: [MigrationStage] { [] }
+    static var schemas: [any VersionedSchema.Type] { [WardrobeSchemaV1.self, WardrobeSchemaV2.self] }
+    static var stages: [MigrationStage] { [v1ToV2] }
+
+    /// Adding an optional property needs no data transformation.
+    static let v1ToV2 = MigrationStage.lightweight(fromVersion: WardrobeSchemaV1.self, toVersion: WardrobeSchemaV2.self)
 }
 
 extension ClothingItemRecord {
@@ -59,6 +105,7 @@ extension ClothingItemRecord {
         isFavorite = item.isFavorite
         imagePath = item.imagePath
         thumbnailPath = item.thumbnailPath
+        cutoutPath = item.cutoutPath
         dateModified = item.dateModified
         aiStatusRaw = item.aiStatus.rawValue
     }
@@ -75,6 +122,7 @@ extension ClothingItemRecord {
             isFavorite: isFavorite,
             imagePath: imagePath,
             thumbnailPath: thumbnailPath,
+            cutoutPath: cutoutPath,
             dateAdded: dateAdded,
             dateModified: dateModified,
             aiStatus: AIAnalysisStatus(rawValue: aiStatusRaw) ?? .manual
@@ -86,7 +134,7 @@ extension ClothingItemRecord {
 
 enum ModelContainerFactory {
     static func make(storeURL: URL? = nil, inMemory: Bool = false) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: WardrobeSchemaV1.self)
+        let schema = Schema(versionedSchema: CurrentWardrobeSchema.self)
         let configuration: ModelConfiguration
         if let storeURL {
             configuration = ModelConfiguration(schema: schema, url: storeURL)

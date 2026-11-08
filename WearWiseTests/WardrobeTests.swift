@@ -259,11 +259,11 @@ struct WardrobeQueryTests {
 struct AddClothingModelTests {
     struct FakeAnalysis: ClothingAnalysisService {
         let result: ClothingAnalysis
-        func analyze(_ image: CGImage) async throws -> ClothingAnalysis { result }
+        func analyze(_ image: CGImage, cutout: CGImage?) async throws -> ClothingAnalysis { result }
     }
 
     struct FailingAnalysis: ClothingAnalysisService {
-        func analyze(_ image: CGImage) async throws -> ClothingAnalysis { throw ClothingAnalysisError.notClothing }
+        func analyze(_ image: CGImage, cutout: CGImage?) async throws -> ClothingAnalysis { throw ClothingAnalysisError.notClothing }
     }
 
     private let shirt = ClothingAnalysis(
@@ -284,7 +284,7 @@ struct AddClothingModelTests {
     }
 
     @Test func suggestionFillsFormAndUserCorrectionSurvivesReanalysis() async {
-        let model = AddClothingModel(processor: ImageProcessor(), analysisService: FakeAnalysis(result: shirt), availabilityProvider: { .available })
+        let model = AddClothingModel(processor: ImageProcessor(), segmenter: NoCutoutSegmenter(), analysisService: FakeAnalysis(result: shirt), availabilityProvider: { .available })
         model.load(imageData: pngData())
         await waitUntil { model.analysis == .suggested(.onDeviceModel) }
         #expect(model.draft.name == "Blue shirt")
@@ -298,7 +298,7 @@ struct AddClothingModelTests {
     }
 
     @Test func analysisFailureLeavesManualEntryAvailable() async {
-        let model = AddClothingModel(processor: ImageProcessor(), analysisService: FailingAnalysis(), availabilityProvider: { .deviceNotEligible })
+        let model = AddClothingModel(processor: ImageProcessor(), segmenter: NoCutoutSegmenter(), analysisService: FailingAnalysis(), availabilityProvider: { .deviceNotEligible })
         model.load(imageData: pngData())
         await waitUntil { if case .failed = model.analysis { true } else { false } }
         #expect(model.preparedPhoto != nil)

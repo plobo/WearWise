@@ -27,8 +27,8 @@ Everything runs on your iPhone. There's no account, no backend, no cloud storage
 The Foundation Models framework in the iOS 26.1 SDK accepts text only, so the model never sees the photo directly:
 
 ```
-Photo ──► Vision ClassifyImageRequest ──► labels ("shirt 82%", "jeans 64%")
-      └─► Pixel sampling ───────────────► measured colours ("light blue 61%", background removed)
+Photo ──► Vision ClassifyImageRequest ──────────► labels ("shirt 82%", "jeans 64%")
+      └─► Vision foreground segmentation ──► cut-out ──► pixel sampling ──► colours ("navy 90%")
                                                 │
                                                 ▼
                          Foundation Models (on device, @Generable output)
@@ -38,7 +38,8 @@ Photo ──► Vision ClassifyImageRequest ──► labels ("shirt 82%", "jean
                          User reviews and confirms ──► saved
 ```
 
-- **Colours come from the pixels**, not from the model's guess, so they're consistent and explainable. Border pixels are treated as background and down-weighted.
+- **The item is cut out first.** Vision foreground segmentation (`GenerateForegroundInstanceMaskRequest`) separates the item from its background. You can switch the cut-out off, and the original photo is always kept.
+- **Colours come from the pixels**, not from the model's guess, so they're consistent and explainable. With a cut-out, only the item's pixels count. Without one, border pixels are treated as background and down-weighted. Small shade variants caused by lighting (a shadowed navy reading as blue) are merged into the main colour.
 - **The model's output is constrained** to the app's own categories, patterns and formality levels via `@Generable` enums.
 - **If the model is unavailable,** Vision labels map deterministically to a category, and colours still come from pixel sampling.
 
@@ -54,9 +55,9 @@ Matching is plain, deterministic app logic (`OutfitMatcher`):
 ## Tech stack
 
 - Swift 6 with strict concurrency, SwiftUI, iOS 26+
-- SwiftData for item records (versioned schema). Photos and thumbnails are stored as local files.
+- SwiftData for item records, with a versioned schema and a migration plan. Photos, cut-outs and thumbnails are stored as local files.
 - Apple Foundation Models (on-device) for structured attribute suggestions
-- Vision and Core Graphics for image classification and colour measurement
+- Vision for image classification and background removal, Core Image and Core Graphics for colour measurement
 - Swift Testing for unit tests
 - No third-party packages
 
@@ -115,7 +116,7 @@ xcodebuild test -project WearWise.xcodeproj -scheme WearWise \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-The tests cover colour naming and sampling, Vision label mapping, the analysis fallback, SwiftData persistence (including reopening the store), photo file cleanup, search and filters, draft validation, preserving user edits when an item is re-analysed, and outfit matching rules. No test depends on a live on-device model.
+The tests cover colour naming and sampling (full photos and cut-outs), Vision label mapping, the schema migration from version 1 to version 2, the analysis fallback, SwiftData persistence (including reopening the store), photo file cleanup, search and filters, draft validation, preserving user edits when an item is re-analysed, and outfit matching rules. No test depends on a live on-device model. Vision background removal doesn't run in the iOS Simulator on Intel Macs, so its one real-segmentation test runs only on a device.
 
 ## Privacy
 
@@ -130,11 +131,12 @@ Built so far:
 - [x] On-device clothing analysis with fallback
 - [x] Wardrobe catalogue: add, review, edit, delete, search, filter, favourites
 - [x] Pick a top → matching pants and shoes from your closet
+- [x] Background removal and colour detection from the item only
 
 Next:
 
 - [ ] Tune the colour rules against real wardrobes
-- [ ] Background removal and better colour detection (Vision foreground segmentation)
+- [ ] Remove the background from items added before cut-outs existed
 - [ ] AI-written "why this works" explanations, validated against owned items
 - [ ] Save outfits and give feedback on suggestions
 - [ ] Outerwear and accessories in suggestions, and dresses as a starting piece

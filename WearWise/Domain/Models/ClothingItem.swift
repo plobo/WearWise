@@ -26,9 +26,14 @@ struct ClothingItem: Identifiable, Sendable, Hashable {
     var isFavorite: Bool
     var imagePath: String
     var thumbnailPath: String
+    /// Background-removed image, when segmentation succeeded and the user kept it.
+    var cutoutPath: String? = nil
     var dateAdded: Date
     var dateModified: Date
     var aiStatus: AIAnalysisStatus
+
+    /// The image to show: the cut-out when available, otherwise the original photo.
+    var displayImagePath: String { cutoutPath ?? imagePath }
 
     var colorDescription: String {
         ([primaryColor] + secondaryColors).map(\.displayName).joined(separator: ", ")

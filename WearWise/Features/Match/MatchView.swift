@@ -102,7 +102,7 @@ struct MatchResultsView: View {
 
     private func header(_ top: ClothingItem) -> some View {
         HStack(spacing: 12) {
-            StoredImage(path: top.thumbnailPath)
+            ItemThumbnail(item: top, padding: 6)
                 .frame(width: 72, height: 72)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 4) {
@@ -182,7 +182,7 @@ private struct OutfitCard: View {
             Color.clear
                 .aspectRatio(1, contentMode: .fit)
                 .frame(maxWidth: 120)
-                .overlay { StoredImage(path: item.thumbnailPath) }
+                .overlay { ItemThumbnail(item: item) }
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .accessibilityLabel(item.name)

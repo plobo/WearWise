@@ -8,16 +8,31 @@ struct ClothingDetailView: View {
     @State private var editing = false
     @State private var confirmingDelete = false
     @State private var errorMessage: String?
+    @State private var showOriginal = false
 
     var body: some View {
         if let item = wardrobe.item(id: itemID) {
             List {
                 Section {
-                    StoredImage(path: item.imagePath, contentMode: .fit)
-                        .frame(maxHeight: 420)
-                        .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
-                        .listRowInsets(EdgeInsets())
-                        .accessibilityLabel("Photo of \(item.name)")
+                    let showingCutout = item.cutoutPath != nil && !showOriginal
+                    StoredImage(
+                        path: showingCutout ? item.displayImagePath : item.imagePath,
+                        contentMode: .fit,
+                        background: showingCutout ? Theme.cutoutBackground : Theme.cardBackground
+                    )
+                    .padding(showingCutout ? 20 : 0)
+                    .frame(maxHeight: 420)
+                    .background(showingCutout ? Theme.cutoutBackground : .clear)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                    .listRowInsets(EdgeInsets())
+                    .accessibilityLabel(showingCutout ? "\(item.name), background removed" : "Photo of \(item.name)")
+                    if item.cutoutPath != nil {
+                        Picker("Image", selection: $showOriginal) {
+                            Text("Cut-out").tag(false)
+                            Text("Original photo").tag(true)
+                        }
+                        .pickerStyle(.segmented)
+                    }
                 }
 
                 if item.category == .tops {

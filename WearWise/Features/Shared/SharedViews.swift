@@ -5,12 +5,33 @@ enum Theme {
     static let accent = Color(red: 0.55, green: 0.38, blue: 0.27)
     static let cardBackground = Color(.secondarySystemBackground)
     static let cornerRadius: CGFloat = 14
+    /// Warm ivory behind background-removed items.
+    static let cutoutBackground = Color(red: 0.96, green: 0.94, blue: 0.90)
+}
+
+/// Shows an item's thumbnail. Cut-outs are fitted on ivory; photos fill the frame.
+struct ItemThumbnail: View {
+    let item: ClothingItem
+    var padding: CGFloat = 10
+
+    var body: some View {
+        if item.cutoutPath != nil {
+            Theme.cutoutBackground
+                .overlay {
+                    StoredImage(path: item.thumbnailPath, contentMode: .fit, background: Theme.cutoutBackground)
+                        .padding(padding)
+                }
+        } else {
+            StoredImage(path: item.thumbnailPath)
+        }
+    }
 }
 
 /// Loads a locally stored photo off the main thread.
 struct StoredImage: View {
     let path: String
     var contentMode: ContentMode = .fill
+    var background: Color = Theme.cardBackground
 
     @Environment(WardrobeStore.self) private var wardrobe
     @State private var image: UIImage?
@@ -18,7 +39,7 @@ struct StoredImage: View {
 
     var body: some View {
         ZStack {
-            Rectangle().fill(Theme.cardBackground)
+            Rectangle().fill(background)
             if let image {
                 Image(uiImage: image)
                     .resizable()
@@ -65,7 +86,7 @@ struct ClothingCard: View {
             // A fixed-ratio frame with the photo overlaid, so a filled image can't widen the grid cell.
             Color.clear
                 .aspectRatio(3 / 4, contentMode: .fit)
-                .overlay { StoredImage(path: item.thumbnailPath) }
+                .overlay { ItemThumbnail(item: item) }
                 .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 .overlay(alignment: .topTrailing) {
                     if item.isFavorite {

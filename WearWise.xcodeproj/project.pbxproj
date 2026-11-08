@@ -10,6 +10,7 @@
 		04CD891AD3D23A359DFA8211 /* SharedViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969DC9362FBD96E0BF652D36 /* SharedViews.swift */; };
 		0792199AC1E6711B566285E8 /* WardrobeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8813485E20E500FFBCD111B /* WardrobeView.swift */; };
 		0AF5D3801CC408E57201EF4E /* AddClothingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8269B2C0EF26FB023E2B7BF9 /* AddClothingView.swift */; };
+		148883327E903296023B82F8 /* ForegroundSegmenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEDAE908976307FC4430C146 /* ForegroundSegmenter.swift */; };
 		156851EE36C98BF075EBAFD3 /* VisionClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FFC995242704EF81110BF55 /* VisionClassifier.swift */; };
 		1AB07416F9FCD18E47311DF1 /* WardrobeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D4BBA2CB189ED078A132F8 /* WardrobeTests.swift */; };
 		1C3959BC1F77393D403F386B /* ClothingRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE56F8ECC23EE50A782EE4B3 /* ClothingRepository.swift */; };
@@ -17,6 +18,7 @@
 		31D0D3157126DE5CA4BB1BFC /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4351DA863CE5531A5DD0C93 /* ProfileView.swift */; };
 		372DF68107F1CECD4CFA32F7 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B305FA5CEAA313EC2214D1 /* ImageProcessor.swift */; };
 		380FA7FE73B0DE430E87895B /* AddClothingModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF00A1057FF005F764AD2397 /* AddClothingModel.swift */; };
+		3AF9D632B274B7B48560E2BA /* BackgroundRemovalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5315AA8DB6C96EA07E449401 /* BackgroundRemovalTests.swift */; };
 		417634481C9A6147EB86E022 /* FoundationModelsClothingInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C69654E26BA1A3E64B767D84 /* FoundationModelsClothingInterpreter.swift */; };
 		5212DFDF4212331C6622D525 /* Milestone0Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C20EFE2967CA0CF8E881DBF /* Milestone0Tests.swift */; };
 		7C3A853AEBE4E31AC3DF39D7 /* LocalImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E394C3433FEA1081E78A85C /* LocalImageStore.swift */; };
@@ -56,6 +58,7 @@
 		2F44201CB790888D3507AE6C /* DebugSampleWardrobe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSampleWardrobe.swift; sourceTree = "<group>"; };
 		3E394C3433FEA1081E78A85C /* LocalImageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalImageStore.swift; sourceTree = "<group>"; };
 		41D4BBA2CB189ED078A132F8 /* WardrobeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeTests.swift; sourceTree = "<group>"; };
+		5315AA8DB6C96EA07E449401 /* BackgroundRemovalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRemovalTests.swift; sourceTree = "<group>"; };
 		5EF0BA14CB5476BBFC8669E3 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
 		5FFC995242704EF81110BF55 /* VisionClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionClassifier.swift; sourceTree = "<group>"; };
 		7A11E5F62AA7BB2BBB53DDF2 /* WardrobeQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeQuery.swift; sourceTree = "<group>"; };
@@ -72,6 +75,7 @@
 		A90999696960E03AEFD02C76 /* DominantColorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DominantColorAnalyzer.swift; sourceTree = "<group>"; };
 		A9B081E5C48BCA9E1B1084C1 /* MatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchView.swift; sourceTree = "<group>"; };
 		BE4E6EC45D203158E2126FC7 /* OutfitMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitMatcherTests.swift; sourceTree = "<group>"; };
+		BEDAE908976307FC4430C146 /* ForegroundSegmenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundSegmenter.swift; sourceTree = "<group>"; };
 		BF00A1057FF005F764AD2397 /* AddClothingModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddClothingModel.swift; sourceTree = "<group>"; };
 		C69654E26BA1A3E64B767D84 /* FoundationModelsClothingInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsClothingInterpreter.swift; sourceTree = "<group>"; };
 		C8813485E20E500FFBCD111B /* WardrobeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeView.swift; sourceTree = "<group>"; };
@@ -142,6 +146,7 @@
 		61C92892BE18DA09B41A1129 /* WearWiseTests */ = {
 			isa = PBXGroup;
 			children = (
+				5315AA8DB6C96EA07E449401 /* BackgroundRemovalTests.swift */,
 				2C20EFE2967CA0CF8E881DBF /* Milestone0Tests.swift */,
 				BE4E6EC45D203158E2126FC7 /* OutfitMatcherTests.swift */,
 				41D4BBA2CB189ED078A132F8 /* WardrobeTests.swift */,
@@ -154,6 +159,7 @@
 			children = (
 				A833545944108BE2D8C58983 /* ColorNamer.swift */,
 				A90999696960E03AEFD02C76 /* DominantColorAnalyzer.swift */,
+				BEDAE908976307FC4430C146 /* ForegroundSegmenter.swift */,
 				03B305FA5CEAA313EC2214D1 /* ImageProcessor.swift */,
 				5FFC995242704EF81110BF55 /* VisionClassifier.swift */,
 			);
@@ -380,6 +386,7 @@
 				D322C591DE1DE70E31C52308 /* ColorNamer.swift in Sources */,
 				9171F5A0179C0B9586DE7758 /* DebugSampleWardrobe.swift in Sources */,
 				97C01AB0872C1DDC766C7E99 /* DominantColorAnalyzer.swift in Sources */,
+				148883327E903296023B82F8 /* ForegroundSegmenter.swift in Sources */,
 				417634481C9A6147EB86E022 /* FoundationModelsClothingInterpreter.swift in Sources */,
 				372DF68107F1CECD4CFA32F7 /* ImageProcessor.swift in Sources */,
 				7C3A853AEBE4E31AC3DF39D7 /* LocalImageStore.swift in Sources */,
@@ -401,6 +408,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3AF9D632B274B7B48560E2BA /* BackgroundRemovalTests.swift in Sources */,
 				5212DFDF4212331C6622D525 /* Milestone0Tests.swift in Sources */,
 				EE226DEAF47B1C7B09DD54EB /* OutfitMatcherTests.swift in Sources */,
 				1AB07416F9FCD18E47311DF1 /* WardrobeTests.swift in Sources */,

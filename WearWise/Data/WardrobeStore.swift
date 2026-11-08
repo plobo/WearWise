@@ -33,19 +33,23 @@ final class WardrobeStore {
     }
 
     /// Saves photo files and a new record. Rolls back the files if the record can't be saved.
+    /// When a cut-out is given, it is stored too and used for the thumbnail. The original photo is always kept.
     @discardableResult
     func add(
         _ draft: ClothingDraft,
         photo: ImageProcessor.Prepared,
+        cutout: ForegroundSegmenter.Cutout? = nil,
         status: AIAnalysisStatus
     ) throws -> ClothingItem {
         guard draft.isComplete, let category = draft.category, let primary = draft.primaryColor, let formality = draft.formality else {
             throw WardrobeError.incomplete(draft.missingFields)
         }
         let id = UUID()
-        let imagePath = try imageStore.save(photo.jpegData, fileName: "\(id.uuidString).jpg")
+        let files = Self.fileNames(for: id, hasCutout: cutout != nil)
+        let imagePath = try imageStore.save(photo.jpegData, fileName: files.image)
         do {
-            let thumbnailPath = try imageStore.save(photo.thumbnailData, fileName: "\(id.uuidString)_thumb.jpg")
+            let thumbnailPath = try imageStore.save(cutout?.thumbnailPNGData ?? photo.thumbnailData, fileName: files.thumbnail)
+            let cutoutPath = try cutout.map { try imageStore.save($0.pngData, fileName: files.cutout) }
             let timestamp = now()
             let item = ClothingItem(
                 id: id,
@@ -58,6 +62,7 @@ final class WardrobeStore {
                 isFavorite: false,
                 imagePath: imagePath,
                 thumbnailPath: thumbnailPath,
+                cutoutPath: cutoutPath,
                 dateAdded: timestamp,
                 dateModified: timestamp,
                 aiStatus: status
@@ -66,10 +71,15 @@ final class WardrobeStore {
             items.insert(item, at: 0)
             return item
         } catch {
-            try? imageStore.delete("\(id.uuidString).jpg")
-            try? imageStore.delete("\(id.uuidString)_thumb.jpg")
+            for file in [files.image, files.thumbnail, files.cutout] { try? imageStore.delete(file) }
             throw error
         }
+    }
+
+    private static func fileNames(for id: UUID, hasCutout: Bool) -> (image: String, thumbnail: String, cutout: String) {
+        let base = id.uuidString
+        // Cut-out thumbnails keep transparency, so they're PNG.
+        return ("\(base).jpg", hasCutout ? "\(base)_thumb.png" : "\(base)_thumb.jpg", "\(base)_cutout.png")
     }
 
     /// Applies edited attributes to an existing item.
@@ -103,8 +113,9 @@ final class WardrobeStore {
     func delete(_ item: ClothingItem) throws {
         try repository.delete(id: item.id)
         items.removeAll { $0.id == item.id }
-        try? imageStore.delete(item.imagePath)
-        try? imageStore.delete(item.thumbnailPath)
+        for path in [item.imagePath, item.thumbnailPath, item.cutoutPath].compactMap({ $0 }) {
+            try? imageStore.delete(path)
+        }
     }
 
     private func save(_ item: ClothingItem) throws {
