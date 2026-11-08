@@ -127,6 +127,7 @@ In debug builds you can launch with sample items instead of photographing your o
 
 - `-seedSampleWardrobe` fills an empty wardrobe with sample tops, pants, shoes, a blazer, a dress, a belt and a scarf.
 - `-openFirstMatch` opens match results for a sample top straight away.
+- `-openInsights` opens the Insights tab.
 - `-openOutfits` opens the Outfits tab. With `-seedSampleWardrobe`, one sample outfit is saved and logged as worn today.
 
 ### Tests
@@ -158,10 +159,10 @@ Built so far:
 - [x] Optional belt (matched to the shoes) and accessory in suggestions
 - [x] "Remove background" for existing items, with an optional main-colour update
 - [x] Short rule-based reasons (at most three sentences) when AI isn't available
+- [x] Insights: most versatile pants and shoes, tops and dresses that need a match, most worn and not worn lately, counts and colours
 
 Next:
 
 - [ ] Tune the colour rules against real wardrobes
-- [ ] Wardrobe insights
 
 The full product plan is in [`requirements/WearWise_Implementation_Plan.md`](requirements/WearWise_Implementation_Plan.md).

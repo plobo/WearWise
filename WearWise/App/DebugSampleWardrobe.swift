@@ -8,6 +8,7 @@ enum DebugSampleWardrobe {
     static var shouldSeed: Bool { ProcessInfo.processInfo.arguments.contains("-seedSampleWardrobe") }
     static var shouldOpenFirstMatch: Bool { ProcessInfo.processInfo.arguments.contains("-openFirstMatch") }
     static var shouldOpenOutfits: Bool { ProcessInfo.processInfo.arguments.contains("-openOutfits") }
+    static var shouldOpenInsights: Bool { ProcessInfo.processInfo.arguments.contains("-openInsights") }
 
     /// Saves the sample smart-casual outfit and logs it as worn today.
     static func seedOutfitsIfRequested(_ outfits: OutfitStore, wardrobe: WardrobeStore) {

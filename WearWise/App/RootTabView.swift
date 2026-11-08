@@ -8,6 +8,7 @@ struct RootTabView: View {
         #if DEBUG
         if DebugSampleWardrobe.shouldOpenFirstMatch { return 1 }
         if DebugSampleWardrobe.shouldOpenOutfits { return 2 }
+        if DebugSampleWardrobe.shouldOpenInsights { return 3 }
         #endif
         return 0
     }
@@ -23,7 +24,10 @@ struct RootTabView: View {
             Tab("Outfits", systemImage: "bookmark", value: 2) {
                 OutfitsView()
             }
-            Tab("Profile", systemImage: "person.crop.circle", value: 3) {
+            Tab("Insights", systemImage: "chart.bar", value: 3) {
+                InsightsView()
+            }
+            Tab("Profile", systemImage: "person.crop.circle", value: 4) {
                 ProfileView()
             }
         }
