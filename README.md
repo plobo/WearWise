@@ -137,7 +137,9 @@ xcodebuild test -project WearWise.xcodeproj -scheme WearWise \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-The tests cover colour naming and sampling (full photos and cut-outs), Vision label mapping, the schema migration from version 1 to version 2, the analysis fallback, SwiftData persistence (including reopening the store), photo file cleanup, search and filters, draft validation, preserving user edits when an item is re-analysed, and outfit matching rules. No unit test depends on a live on-device model. To check the real model on a device with Apple Intelligence, run the opt-in test with `TEST_RUNNER_WEARWISE_LIVE_AI=1` set in the environment of `xcodebuild test`. Vision background removal doesn't run in the iOS Simulator on Intel Macs, so its one real-segmentation test runs only on a device.
+The tests cover colour naming and sampling (full photos and cut-outs), Vision label mapping, the schema migration from version 1 to version 2, the analysis fallback, SwiftData persistence (including reopening the store), photo file cleanup, search and filters, draft validation, preserving user edits when an item is re-analysed, and outfit matching rules. UI tests (`WearWiseUITests`) drive the real app, launched with `-uiTesting`. That mode starts with an in-memory store, the sample wardrobe and AI turned off, so runs are repeatable and never touch your data. The tests cover browsing and filtering, search, editing, deleting, Add requiring a photo, Match → Save → Wore today → Outfits, "Not for me" with Undo, and dress outfits. `AccessibilityAuditTests` runs Apple's automated accessibility audit on every main screen at the default and Accessibility Large text sizes. It skips or downgrades only documented false positives: content under the translucent tab bar, system navigation-bar buttons, inactive controls, and "nearly passed" contrast warnings. To capture screenshots of screens that are hard to reach otherwise, run with `TEST_RUNNER_CAPTURE_SCREENS=1`.
+
+No unit test depends on a live on-device model. To check the real model on a device with Apple Intelligence, run the opt-in test with `TEST_RUNNER_WEARWISE_LIVE_AI=1` set in the environment of `xcodebuild test`. Vision background removal doesn't run in the iOS Simulator on Intel Macs, so its one real-segmentation test runs only on a device.
 
 ## Privacy
 
@@ -159,6 +161,7 @@ Built so far:
 - [x] Optional belt (matched to the shoes) and accessory in suggestions
 - [x] "Remove background" for existing items, with an optional main-colour update
 - [x] Short rule-based reasons (at most three sentences) when AI isn't available
+- [x] UI tests for the main flows, plus automated accessibility audits at default and large text sizes
 - [x] Insights: most versatile pants and shoes, tops and dresses that need a match, most worn and not worn lately, counts and colours
 
 Next:

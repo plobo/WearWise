@@ -5,13 +5,13 @@ struct WardrobeView: View {
     @State private var query = WardrobeQuery()
     @State private var showingAdd = false
 
-    private let columns = [GridItem(.adaptive(minimum: 150), spacing: 16)]
+    private let columns = [GridItem(.adaptive(minimum: 150), spacing: 16, alignment: .top)]
 
     var body: some View {
         NavigationStack {
             content
                 .navigationTitle("My Wardrobe")
-                .searchable(text: $query.searchText, prompt: "Search name, colour, category")
+                .searchable(text: $query.searchText, prompt: "Search wardrobe")
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) { sortAndFilterMenu }
                     ToolbarItem(placement: .primaryAction) {
@@ -56,6 +56,7 @@ struct WardrobeView: View {
                                 ClothingCard(item: item)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier("wardrobe.item.\(item.name)")
                         }
                     }
                     .padding(.horizontal)

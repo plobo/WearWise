@@ -35,6 +35,9 @@ struct ClothingDetailView: View {
                         }
                         .pickerStyle(.segmented)
                     }
+                }
+
+                Section {
                     photoAction(for: item)
                 }
 
@@ -67,7 +70,7 @@ struct ClothingDetailView: View {
                 Section {
                     LabeledContent("Added", value: item.dateAdded.formatted(date: .abbreviated, time: .omitted))
                     if let note = Self.statusNote(item.aiStatus) {
-                        Text(note).font(.footnote).foregroundStyle(.secondary)
+                        Text(note).font(.footnote).foregroundStyle(Theme.secondaryText)
                     }
                 }
 
@@ -136,26 +139,26 @@ struct ClothingDetailView: View {
                 HStack(spacing: 8) {
                     ProgressView()
                     Text(item.cutoutPath == nil ? "Removing background…" : "Restoring original photo…")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
                 }
             } else if item.cutoutPath == nil {
                 Button {
                     Task { await model.removeBackground(of: item, in: wardrobe) }
                 } label: {
-                    Label("Remove background", systemImage: "scissors")
+                    ActionRowLabel("Remove background", systemImage: "scissors")
                 }
             } else {
                 Button {
                     showOriginal = false
                     Task { await model.restoreOriginal(of: item, in: wardrobe) }
                 } label: {
-                    Label("Use original photo instead", systemImage: "photo")
+                    ActionRowLabel("Use original photo instead", systemImage: "photo")
                 }
             }
             if case .failed(let message) = model.state {
                 Label(message, systemImage: "exclamationmark.triangle")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.secondaryText)
             }
         }
     }

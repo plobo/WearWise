@@ -24,6 +24,7 @@
 		3A768B248F430626F75FFEAD /* OutfitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B49A5EBBBF8BB5283FD96AC5 /* OutfitTests.swift */; };
 		3AF9D632B274B7B48560E2BA /* BackgroundRemovalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5315AA8DB6C96EA07E449401 /* BackgroundRemovalTests.swift */; };
 		417634481C9A6147EB86E022 /* FoundationModelsClothingInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C69654E26BA1A3E64B767D84 /* FoundationModelsClothingInterpreter.swift */; };
+		438A7D568D09DEAE7AA23434 /* ScreenshotCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4BF9735AB5687546473FD7 /* ScreenshotCaptureTests.swift */; };
 		4C6279D5B7B98BDFD35AFBF8 /* OutfitPiecesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FABC718D275EA36A4F23492 /* OutfitPiecesTests.swift */; };
 		5212DFDF4212331C6622D525 /* Milestone0Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C20EFE2967CA0CF8E881DBF /* Milestone0Tests.swift */; };
 		5D190F015FCF066776830C73 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15B3E342B35C2C03B3E76A76 /* InsightsView.swift */; };
@@ -43,8 +44,10 @@
 		A3EDF28D1333F05172476B86 /* OutfitMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA9F4C178A1DA8FD66E0822 /* OutfitMatcher.swift */; };
 		A631822365685665E8089A09 /* WardrobeSchemas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7212E190A5E19458B0CA0D52 /* WardrobeSchemas.swift */; };
 		AFDDB75231AC64A72F2E36D4 /* ClothingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F329D9BC0CC0E52CC18BD5C5 /* ClothingItem.swift */; };
+		B0324A247C18483AD5D9AC09 /* AccessibilityAuditTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E95AFEE5124EDAADC58DEB /* AccessibilityAuditTests.swift */; };
 		C59992604B0646F892034551 /* WardrobeInsights.swift in Sources */ = {isa = PBXBuildFile; fileRef = F62D191CCBB22F4818FC0AAB /* WardrobeInsights.swift */; };
 		C8E395C5F861D9EB08433EA7 /* ClothingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B92A1AEF341AD362FFDDC87 /* ClothingDetailView.swift */; };
+		CC988089460FD77356C10DE2 /* WearWiseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043A5B205D026E2038C9C2AA /* WearWiseUITests.swift */; };
 		D0103F92C1D7EDAE7E4FAD42 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AB98AF2554B03B594ADB5D /* RootTabView.swift */; };
 		D0CCB427D5D3FD4BA357971D /* OutfitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FBFD8776F155F41895A2685 /* OutfitsView.swift */; };
 		D2906689CD63BC890C51A6B5 /* WardrobeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C1A53FCBF8044941C427D8 /* WardrobeStore.swift */; };
@@ -57,6 +60,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		8BAA2CB6CBA51337AFF07B7D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EB4C9D1B475C7A394CA5C745 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 89857EB6F2819E5B2D73666B;
+			remoteInfo = WearWise;
+		};
 		C07CD3654DB6AFCEB47AF6FF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EB4C9D1B475C7A394CA5C745 /* Project object */;
@@ -68,6 +78,7 @@
 
 /* Begin PBXFileReference section */
 		03B305FA5CEAA313EC2214D1 /* ImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessor.swift; sourceTree = "<group>"; };
+		043A5B205D026E2038C9C2AA /* WearWiseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearWiseUITests.swift; sourceTree = "<group>"; };
 		0C3EE8D6C475D2AF0996C648 /* WearWise.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WearWise.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		15B3E342B35C2C03B3E76A76 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		283755F75CA1BCE3454C2A8A /* SwiftDataClothingRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataClothingRepository.swift; sourceTree = "<group>"; };
@@ -81,6 +92,7 @@
 		5315AA8DB6C96EA07E449401 /* BackgroundRemovalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRemovalTests.swift; sourceTree = "<group>"; };
 		5EF0BA14CB5476BBFC8669E3 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
 		5FFC995242704EF81110BF55 /* VisionClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionClassifier.swift; sourceTree = "<group>"; };
+		6B4BF9735AB5687546473FD7 /* ScreenshotCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureTests.swift; sourceTree = "<group>"; };
 		6CF95CEE418EE1B3CFF1B0B5 /* OutfitExplanationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitExplanationProvider.swift; sourceTree = "<group>"; };
 		6DF3ABAE1AA55F325164A92E /* AccessoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryTests.swift; sourceTree = "<group>"; };
 		7212E190A5E19458B0CA0D52 /* WardrobeSchemas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeSchemas.swift; sourceTree = "<group>"; };
@@ -90,6 +102,7 @@
 		7EA9F4C178A1DA8FD66E0822 /* OutfitMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitMatcher.swift; sourceTree = "<group>"; };
 		8269B2C0EF26FB023E2B7BF9 /* AddClothingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddClothingView.swift; sourceTree = "<group>"; };
 		83C1A53FCBF8044941C427D8 /* WardrobeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeStore.swift; sourceTree = "<group>"; };
+		873165472984419A57B76312 /* WearWiseUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WearWiseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		87EFE77879256E5DF3C21FA7 /* ClothingAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClothingAttributes.swift; sourceTree = "<group>"; };
 		8D18D5CD515EFB0ABDFBE9E0 /* OutfitExplainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitExplainer.swift; sourceTree = "<group>"; };
 		8FA2463AEA51C192FD68A9CC /* AIAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAvailability.swift; sourceTree = "<group>"; };
@@ -111,6 +124,7 @@
 		C69654E26BA1A3E64B767D84 /* FoundationModelsClothingInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsClothingInterpreter.swift; sourceTree = "<group>"; };
 		C8813485E20E500FFBCD111B /* WardrobeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeView.swift; sourceTree = "<group>"; };
 		C9AB98AF2554B03B594ADB5D /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		D3E95AFEE5124EDAADC58DEB /* AccessibilityAuditTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityAuditTests.swift; sourceTree = "<group>"; };
 		E1FD097C24695912F3F0A4E2 /* ClothingAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClothingAnalysisService.swift; sourceTree = "<group>"; };
 		F329D9BC0CC0E52CC18BD5C5 /* ClothingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClothingItem.swift; sourceTree = "<group>"; };
 		F62D191CCBB22F4818FC0AAB /* WardrobeInsights.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeInsights.swift; sourceTree = "<group>"; };
@@ -176,6 +190,7 @@
 			children = (
 				0C3EE8D6C475D2AF0996C648 /* WearWise.app */,
 				A8D3DDEFC9B8FA553DFDDD36 /* WearWiseTests.xctest */,
+				873165472984419A57B76312 /* WearWiseUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -232,11 +247,22 @@
 			path = Vision;
 			sourceTree = "<group>";
 		};
+		6EE2A66CA26C3134864628A0 /* WearWiseUITests */ = {
+			isa = PBXGroup;
+			children = (
+				D3E95AFEE5124EDAADC58DEB /* AccessibilityAuditTests.swift */,
+				6B4BF9735AB5687546473FD7 /* ScreenshotCaptureTests.swift */,
+				043A5B205D026E2038C9C2AA /* WearWiseUITests.swift */,
+			);
+			path = WearWiseUITests;
+			sourceTree = "<group>";
+		};
 		72BA6AE5E5661CF1C36B70AB = {
 			isa = PBXGroup;
 			children = (
 				B3FF0E6435D56ABA102E92A9 /* WearWise */,
 				61C92892BE18DA09B41A1129 /* WearWiseTests */,
+				6EE2A66CA26C3134864628A0 /* WearWiseUITests */,
 				432FB60601DF026FFD2B0E85 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -412,6 +438,24 @@
 			productReference = 0C3EE8D6C475D2AF0996C648 /* WearWise.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C99EFEE5CE6FE7E1D49E1EBA /* WearWiseUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 12F6A89FE395F8F6227FBD54 /* Build configuration list for PBXNativeTarget "WearWiseUITests" */;
+			buildPhases = (
+				496F3EF03BED3C71D78C0CDA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA25992C1045728DB4C66038 /* PBXTargetDependency */,
+			);
+			name = WearWiseUITests;
+			packageProductDependencies = (
+			);
+			productName = WearWiseUITests;
+			productReference = 873165472984419A57B76312 /* WearWiseUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -426,6 +470,10 @@
 					};
 					89857EB6F2819E5B2D73666B = {
 						ProvisioningStyle = Automatic;
+					};
+					C99EFEE5CE6FE7E1D49E1EBA = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = 89857EB6F2819E5B2D73666B;
 					};
 				};
 			};
@@ -445,11 +493,22 @@
 			targets = (
 				89857EB6F2819E5B2D73666B /* WearWise */,
 				46D3FC8370C70AFCD6FD83D0 /* WearWiseTests */,
+				C99EFEE5CE6FE7E1D49E1EBA /* WearWiseUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		496F3EF03BED3C71D78C0CDA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0324A247C18483AD5D9AC09 /* AccessibilityAuditTests.swift in Sources */,
+				438A7D568D09DEAE7AA23434 /* ScreenshotCaptureTests.swift in Sources */,
+				CC988089460FD77356C10DE2 /* WearWiseUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6BD5009FB3106599E8A772E0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -519,6 +578,11 @@
 			target = 89857EB6F2819E5B2D73666B /* WearWise */;
 			targetProxy = C07CD3654DB6AFCEB47AF6FF /* PBXContainerItemProxy */;
 		};
+		AA25992C1045728DB4C66038 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 89857EB6F2819E5B2D73666B /* WearWise */;
+			targetProxy = 8BAA2CB6CBA51337AFF07B7D /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -560,6 +624,40 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		5EAE3857BBCDA87B01F9A670 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pradeeplobo.WearWiseUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WearWise;
+			};
+			name = Debug;
+		};
+		7C79924CA6880F291BD23E0D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pradeeplobo.WearWiseUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WearWise;
+			};
+			name = Release;
 		};
 		80DB0832599E5CC88AA378BD /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -735,6 +833,15 @@
 			buildConfigurations = (
 				BB191B433241CD77157250AC /* Debug */,
 				034080243249C0A59F6B5932 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		12F6A89FE395F8F6227FBD54 /* Build configuration list for PBXNativeTarget "WearWiseUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5EAE3857BBCDA87B01F9A670 /* Debug */,
+				7C79924CA6880F291BD23E0D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

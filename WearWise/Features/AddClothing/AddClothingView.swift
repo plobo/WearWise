@@ -107,11 +107,20 @@ private struct AddClothingForm: View {
         Section {
             switch model.photo {
             case .none:
-                ContentUnavailableView(
-                    "Add a photo",
-                    systemImage: "camera",
-                    description: Text("Lay the item flat or hang it against a plain background.")
-                )
+                VStack(spacing: 8) {
+                    Image(systemName: "camera")
+                        .font(.largeTitle)
+                        .foregroundStyle(Theme.secondaryText)
+                        .accessibilityHidden(true)
+                    Text("Add a photo")
+                        .font(.headline)
+                    Text("Lay the item flat or hang it against a plain background.")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
             case .preparing:
                 ProgressView("Preparing photo…").frame(maxWidth: .infinity)
             case .ready(_, let image):
@@ -134,12 +143,12 @@ private struct AddClothingForm: View {
                 Button {
                     showingCamera = true
                 } label: {
-                    Label(model.preparedPhoto == nil ? "Take photo" : "Retake photo", systemImage: "camera")
+                    ActionRowLabel(model.preparedPhoto == nil ? "Take photo" : "Retake photo", systemImage: "camera")
                 }
             }
             let libraryTitle = model.preparedPhoto == nil ? "Choose from library" : "Choose a different photo"
             PhotosPicker(selection: $pickerItem, matching: .images) {
-                Label(libraryTitle, systemImage: "photo.on.rectangle")
+                ActionRowLabel(libraryTitle, systemImage: "photo.on.rectangle")
             }
         }
     }
@@ -152,7 +161,7 @@ private struct AddClothingForm: View {
         case .removing:
             HStack(spacing: 8) {
                 ProgressView()
-                Text("Removing background…").foregroundStyle(.secondary)
+                Text("Removing background…").foregroundStyle(Theme.secondaryText)
             }
         case .removed:
             Toggle(isOn: Binding(get: { model.useCutout }, set: { model.setUseCutout($0) })) {
@@ -161,7 +170,7 @@ private struct AddClothingForm: View {
                         Text("Remove background")
                         Text("Colours are measured from the item only.")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.secondaryText)
                     }
                 } icon: {
                     Image(systemName: "scissors")
@@ -171,7 +180,7 @@ private struct AddClothingForm: View {
         case .unavailable:
             Label("Couldn't separate the item from the background, so the full photo is used.", systemImage: "scissors")
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.secondaryText)
         }
     }
 
@@ -204,7 +213,7 @@ private struct AddClothingForm: View {
                         .font(.footnote)
                     Text("Fill in the details below yourself.")
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
                 }
             }
         }

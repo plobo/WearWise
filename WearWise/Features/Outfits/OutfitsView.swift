@@ -117,15 +117,15 @@ private struct OutfitRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(resolved.title)
                     .font(.subheadline.weight(.medium))
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let detail {
                     Text(detail)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
                 }
                 Text(wearSummary)
                     .font(.caption)
-                    .foregroundStyle(wornToday ? Theme.accent : .secondary)
+                    .foregroundStyle(wornToday ? Theme.accent : Theme.secondaryText)
             }
         }
         .padding(.vertical, 4)

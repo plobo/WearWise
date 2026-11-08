@@ -36,11 +36,23 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.pradeeplobo.WearWiseTests
+  WearWiseUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [WearWiseUITests]
+    dependencies:
+      - target: WearWise
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.pradeeplobo.WearWiseUITests
+        TEST_TARGET_NAME: WearWise
 schemes:
   WearWise:
     build:
       targets:
         WearWise: all
         WearWiseTests: [test]
+        WearWiseUITests: [test]
     test:
-      targets: [WearWiseTests]
+      targets: [WearWiseTests, WearWiseUITests]

@@ -23,6 +23,7 @@ final class AppDependencies {
         analysisService: any ClothingAnalysisService = DefaultClothingAnalysisService(),
         imageProcessor: ImageProcessor = ImageProcessor(),
         segmenter: any ForegroundSegmenting = ForegroundSegmenter(),
+        explanations: OutfitExplanationProvider? = nil,
         storageWarning: String? = nil
     ) {
         self.container = container
@@ -33,7 +34,7 @@ final class AppDependencies {
         wardrobe = WardrobeStore(repository: SwiftDataClothingRepository(container: container), imageStore: imageStore)
         let outfits = OutfitStore(repository: SwiftDataOutfitRepository(container: container))
         self.outfits = outfits
-        explanations = OutfitExplanationProvider()
+        self.explanations = explanations ?? OutfitExplanationProvider()
         wardrobe.onItemDeleted = { itemID in try outfits.removeOutfits(containing: itemID) }
         #if DEBUG
         DebugSampleWardrobe.seedIfRequested(wardrobe)
@@ -42,6 +43,9 @@ final class AppDependencies {
     }
 
     static func live() -> AppDependencies {
+        #if DEBUG
+        if DebugSampleWardrobe.isUITesting { return uiTesting() }
+        #endif
         let imageStore = (try? LocalImageStore.appDefault())
             ?? LocalImageStore(baseDirectory: FileManager.default.temporaryDirectory.appending(path: "ClothingImages"))
         do {
@@ -56,4 +60,16 @@ final class AppDependencies {
             )
         }
     }
+
+    #if DEBUG
+    /// Isolated, repeatable state for UI tests.
+    private static func uiTesting() -> AppDependencies {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "UITest-\(UUID().uuidString)")
+        return AppDependencies(
+            container: try! ModelContainerFactory.make(inMemory: true),
+            imageStore: LocalImageStore(baseDirectory: directory),
+            explanations: OutfitExplanationProvider(availabilityProvider: { .unknownUnavailable })
+        )
+    }
+    #endif
 }

@@ -6,7 +6,7 @@ struct MatchView: View {
     @State private var path: [UUID] = []
     @State private var showingAdd = false
 
-    private let columns = [GridItem(.adaptive(minimum: 110), spacing: 12)]
+    private let columns = [GridItem(.adaptive(minimum: 150), spacing: 16, alignment: .top)]
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -60,7 +60,7 @@ struct MatchView: View {
                     .padding(.horizontal)
                 Text("Pick a top or a dress. Suggestions only use clothes you own.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     .padding(.bottom, 8)
@@ -70,6 +70,7 @@ struct MatchView: View {
                             ClothingCard(item: top)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("match.start.\(top.name)")
                     }
                 }
                 .padding(.horizontal)
@@ -123,7 +124,7 @@ struct MatchResultsView: View {
                     ColorSwatch(color: top.primaryColor)
                     Text("\(top.primaryColor.displayName) · \(top.formality.displayName)")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
                 }
             }
         }
@@ -260,35 +261,33 @@ private struct OutfitCard: View {
         .padding(12)
         .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
         .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("outfit.card.\(suggestion.title)")
     }
 
     private var plus: some View {
         Image(systemName: "plus")
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Theme.secondaryText)
             .accessibilityHidden(true)
     }
 
     /// The optional layer and accessories, smaller than the core pieces.
     private var extrasRow: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Optional extras")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-            HStack(spacing: 10) {
-                ForEach(suggestion.extras) { item in
-                    VStack(spacing: 4) {
-                        OutfitPiece(item: item, maxWidth: 64)
-                            .frame(width: 64, height: 64)
-                        Text(item.name)
-                            .font(.caption2)
-                            .lineLimit(1)
-                            .frame(width: 72)
-                    }
+                .foregroundStyle(Theme.secondaryText)
+            // A vertical list, so names can grow with Dynamic Type instead of squeezing under thumbnails.
+            ForEach(suggestion.extras) { item in
+                HStack(spacing: 10) {
+                    OutfitPiece(item: item, maxWidth: 44)
+                        .frame(width: 44, height: 44)
+                    Text(item.name)
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
                 }
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Optional extras: \(suggestion.extras.map(\.name).formatted(.list(type: .and)))")
     }
 
     /// Rule-based reasons show at once; validated AI text replaces them when ready.
@@ -308,7 +307,7 @@ private struct OutfitCard: View {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(suggestion.summary)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.secondaryText)
                 if explanation == .pending {
                     ProgressView()
                         .controlSize(.mini)
@@ -324,7 +323,7 @@ private struct OutfitCard: View {
                 .font(.subheadline.weight(.medium))
         }
         .buttonStyle(.bordered)
-        .tint(active ? Theme.accent : .secondary)
+        .tint(active ? Theme.accent : .primary)
         .accessibilityAddTraits(active ? .isSelected : [])
     }
 }

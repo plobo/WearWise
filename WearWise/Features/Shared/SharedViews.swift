@@ -5,6 +5,12 @@ enum Theme {
     static let accent = Color(red: 0.55, green: 0.38, blue: 0.27)
     static let cardBackground = Color(.secondarySystemBackground)
     static let cornerRadius: CGFloat = 14
+    /// Secondary text with enough contrast on both the page and card backgrounds (WCAG AA).
+    static let secondaryText = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 0.78, alpha: 1)
+            : UIColor(white: 0.32, alpha: 1)
+    })
     /// Warm ivory behind background-removed items.
     static let cutoutBackground = Color(red: 0.96, green: 0.94, blue: 0.90)
 }
@@ -47,7 +53,7 @@ struct StoredImage: View {
             } else if failed {
                 Image(systemName: "photo")
                     .font(.title)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.secondaryText)
                     .accessibilityLabel("Photo missing")
             }
         }
@@ -98,13 +104,11 @@ struct ClothingCard: View {
                 }
             Text(item.name)
                 .font(.subheadline.weight(.medium))
-                .lineLimit(1)
             HStack(spacing: 4) {
                 ColorSwatch(color: item.primaryColor, size: 10)
                 Text("\(item.category.displayName) · \(item.formality.displayName)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .foregroundStyle(Theme.secondaryText)
             }
         }
         .accessibilityElement(children: .combine)
@@ -220,5 +224,29 @@ private struct SecondaryColorPicker: View {
             .accessibilityAddTraits(selection.contains(color) ? .isSelected : [])
         }
         .navigationTitle("Other colours")
+    }
+}
+
+/// An icon + title row for buttons inside lists and forms. Wraps cleanly at large text sizes.
+struct ActionRowLabel: View {
+    let title: String
+    let systemImage: String
+
+    init(_ title: String, systemImage: String) {
+        self.title = title
+        self.systemImage = systemImage
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .frame(minWidth: 24)
+                .accessibilityHidden(true)
+            Text(title)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
     }
 }

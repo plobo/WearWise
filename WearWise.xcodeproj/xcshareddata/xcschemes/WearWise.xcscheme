@@ -35,6 +35,20 @@
                ReferencedContainer = "container:WearWise.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C99EFEE5CE6FE7E1D49E1EBA"
+               BuildableName = "WearWiseUITests.xctest"
+               BlueprintName = "WearWiseUITests"
+               ReferencedContainer = "container:WearWise.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -61,6 +75,17 @@
                BlueprintIdentifier = "46D3FC8370C70AFCD6FD83D0"
                BuildableName = "WearWiseTests.xctest"
                BlueprintName = "WearWiseTests"
+               ReferencedContainer = "container:WearWise.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C99EFEE5CE6FE7E1D49E1EBA"
+               BuildableName = "WearWiseUITests.xctest"
+               BlueprintName = "WearWiseUITests"
                ReferencedContainer = "container:WearWise.xcodeproj">
             </BuildableReference>
          </TestableReference>

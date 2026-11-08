@@ -57,7 +57,7 @@ struct InsightsView: View {
                 } else {
                     Text("Tap Wore today on an outfit in Match to start tracking what you wear.")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
                 }
             } header: {
                 Text("Most worn")
@@ -90,7 +90,7 @@ struct InsightsView: View {
                         Text(entry.color.displayName)
                         Spacer()
                         Text("\(entry.count) · \(entry.share.formatted(.percent.precision(.fractionLength(0))))")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.secondaryText)
                             .monospacedDigit()
                     }
                     .accessibilityElement(children: .combine)
@@ -111,7 +111,7 @@ struct InsightsView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name).font(.subheadline.weight(.medium))
-                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                    Text(detail).font(.caption).foregroundStyle(Theme.secondaryText)
                 }
             }
         }
