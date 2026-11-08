@@ -62,8 +62,10 @@ struct ClothingCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            StoredImage(path: item.thumbnailPath)
+            // A fixed-ratio frame with the photo overlaid, so a filled image can't widen the grid cell.
+            Color.clear
                 .aspectRatio(3 / 4, contentMode: .fit)
+                .overlay { StoredImage(path: item.thumbnailPath) }
                 .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
                 .overlay(alignment: .topTrailing) {
                     if item.isFavorite {

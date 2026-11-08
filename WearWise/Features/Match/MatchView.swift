@@ -179,9 +179,10 @@ private struct OutfitCard: View {
         NavigationLink {
             ClothingDetailView(itemID: item.id)
         } label: {
-            StoredImage(path: item.thumbnailPath)
+            Color.clear
                 .aspectRatio(1, contentMode: .fit)
                 .frame(maxWidth: 120)
+                .overlay { StoredImage(path: item.thumbnailPath) }
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .accessibilityLabel(item.name)

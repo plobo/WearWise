@@ -6,6 +6,13 @@ WearWise is a privacy-first iOS app that helps you decide what to wear using the
 
 Everything runs on your iPhone. There's no account, no backend, no cloud storage and no third-party AI service.
 
+<p align="center">
+  <img src="docs/screenshots/wardrobe.png" width="280" alt="My Wardrobe: a photo grid of tops and pants with search and category filters">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/match.png" width="280" alt="Match this top: a light blue oxford shirt with suggested outfits, beige chinos with brown loafers rated a great match">
+</p>
+<p align="center"><sub>Wardrobe grid and match results, shown with the built-in sample wardrobe (<code>-seedSampleWardrobe</code>) instead of real photos.</sub></p>
+
 ## What it does
 
 - **Builds your closet from photos.** Take a photo or choose one from your library. WearWise suggests a name, category, colours, pattern and how casual or formal the item is. You confirm or correct every value before it's saved.
