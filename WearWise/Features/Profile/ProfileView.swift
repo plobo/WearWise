@@ -19,7 +19,7 @@ struct ProfileView: View {
                 } header: {
                     Text("On-device AI")
                 } footer: {
-                    Text("AI only suggests details when you add an item. You always confirm them. Outfit matching works without AI.")
+                    Text("AI suggests details when you add an item, which you always confirm, and writes short outfit explanations. The app itself picks every outfit, so matching works without AI.")
                 }
 
                 Section("Privacy") {

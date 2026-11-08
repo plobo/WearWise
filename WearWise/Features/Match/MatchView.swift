@@ -84,6 +84,7 @@ struct MatchResultsView: View {
 
     @Environment(WardrobeStore.self) private var wardrobe
     @Environment(OutfitStore.self) private var outfits
+    @Environment(OutfitExplanationProvider.self) private var explanations
     @State private var lastHidden: OutfitKey?
     @State private var errorMessage: String?
 
@@ -96,6 +97,7 @@ struct MatchResultsView: View {
                 }
                 .padding()
                 .animation(.default, value: outfits.outfits)
+                .animation(.easeInOut, value: explanations.states)
             }
             .navigationTitle("Match this top")
             .navigationBarTitleDisplayMode(.inline)
@@ -140,6 +142,7 @@ struct MatchResultsView: View {
             ForEach(suggestions) { suggestion in
                 OutfitCard(
                     suggestion: suggestion,
+                    explanation: explanations.state(for: suggestion),
                     isSaved: outfits.isSaved(suggestion.key),
                     isWornToday: outfits.isWornToday(suggestion.key),
                     onSave: { perform { try outfits.toggleSaved(suggestion.key) } },
@@ -151,6 +154,9 @@ struct MatchResultsView: View {
                         }
                     }
                 )
+                .task(id: OutfitExplanationInput(suggestion)) {
+                    await explanations.request(suggestion, wardrobe: wardrobe.items)
+                }
             }
         case .missingPieces(let needsBottoms, let needsShoes):
             let missing = [needsBottoms ? "pants" : nil, needsShoes ? "shoes" : nil].compactMap { $0 }.joined(separator: " and ")
@@ -205,6 +211,7 @@ struct MatchResultsView: View {
 
 private struct OutfitCard: View {
     let suggestion: OutfitSuggestion
+    let explanation: OutfitExplanationProvider.State?
     let isSaved: Bool
     let isWornToday: Bool
     let onSave: () -> Void
@@ -227,9 +234,7 @@ private struct OutfitCard: View {
                     .padding(.vertical, 3)
                     .background(Theme.accent.opacity(0.15), in: Capsule())
             }
-            Text(suggestion.reasons.joined(separator: ". ") + ".")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            explanationView
             HStack(spacing: 8) {
                 actionButton(isSaved ? "Saved" : "Save", systemImage: isSaved ? "bookmark.fill" : "bookmark", active: isSaved, action: onSave)
                 actionButton(isWornToday ? "Worn today" : "Wore today", systemImage: isWornToday ? "checkmark.circle.fill" : "checkmark.circle", active: isWornToday, action: onWore)
@@ -248,6 +253,33 @@ private struct OutfitCard: View {
         .padding(12)
         .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
         .accessibilityElement(children: .contain)
+    }
+
+    /// Rule-based reasons show at once; validated AI text replaces them when ready.
+    @ViewBuilder
+    private var explanationView: some View {
+        if case .ready(let text) = explanation {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(text)
+                    .font(.subheadline)
+                Label("Written on device", systemImage: "sparkles")
+                    .font(.caption2)
+                    .foregroundStyle(Theme.accent)
+                    .accessibilityLabel("Explanation written by on-device AI")
+            }
+            .transition(.opacity)
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(OutfitExplanationInput(suggestion).fallbackText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if explanation == .pending {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .accessibilityLabel("Writing explanation")
+                }
+            }
+        }
     }
 
     private func actionButton(_ title: String, systemImage: String, active: Bool, action: @escaping () -> Void) -> some View {

@@ -53,6 +53,17 @@ Matching is plain, deterministic app logic (`OutfitMatcher`):
 - **Your history.** Combinations you marked "Not for me" are never suggested again. Pants worn in the last two days, and shoes worn yesterday, rank lower. This only reorders suggestions and never lowers the rating.
 - **Validation.** Every item ID must exist in the wardrobe and be in the right role. Deleting a piece of clothing also deletes the saved outfits that used it.
 
+### AI outfit explanations
+
+On devices with Apple Intelligence, the on-device model rewrites the app's reasons as one or two natural sentences. The model never chooses clothes: it receives only the three chosen items and the rule-based facts. Its text is then checked by `OutfitExplanationValidator`, which rejects anything that:
+
+- names clothing not in the outfit (a blazer, a belt, sneakers when the outfit has loafers)
+- names another item in your closet
+- claims a material or mentions a price
+- suggests adding, swapping or layering pieces
+
+If the text is rejected, the model fails, or AI isn't available, the rule-based reasons are shown instead. Accepted text is marked "Written on device". Generations run one at a time and are cached for the session.
+
 ## Tech stack
 
 - Swift 6 with strict concurrency, SwiftUI, iOS 26+
@@ -118,7 +129,7 @@ xcodebuild test -project WearWise.xcodeproj -scheme WearWise \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-The tests cover colour naming and sampling (full photos and cut-outs), Vision label mapping, the schema migration from version 1 to version 2, the analysis fallback, SwiftData persistence (including reopening the store), photo file cleanup, search and filters, draft validation, preserving user edits when an item is re-analysed, and outfit matching rules. No test depends on a live on-device model. Vision background removal doesn't run in the iOS Simulator on Intel Macs, so its one real-segmentation test runs only on a device.
+The tests cover colour naming and sampling (full photos and cut-outs), Vision label mapping, the schema migration from version 1 to version 2, the analysis fallback, SwiftData persistence (including reopening the store), photo file cleanup, search and filters, draft validation, preserving user edits when an item is re-analysed, and outfit matching rules. No unit test depends on a live on-device model. To check the real model on a device with Apple Intelligence, run the opt-in test with `TEST_RUNNER_WEARWISE_LIVE_AI=1` set in the environment of `xcodebuild test`. Vision background removal doesn't run in the iOS Simulator on Intel Macs, so its one real-segmentation test runs only on a device.
 
 ## Privacy
 
@@ -135,12 +146,12 @@ Built so far:
 - [x] Pick a top → matching pants and shoes from your closet
 - [x] Background removal and colour detection from the item only
 - [x] Save outfits, hide suggestions ("Not for me"), log what you wore; recently worn pants rank lower
+- [x] AI-written outfit explanations, validated against the chosen items
 
 Next:
 
 - [ ] Tune the colour rules against real wardrobes
 - [ ] Remove the background from items added before cut-outs existed
-- [ ] AI-written "why this works" explanations, validated against owned items
 - [ ] Outerwear and accessories in suggestions, and dresses as a starting piece
 - [ ] Wardrobe insights
 
