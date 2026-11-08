@@ -1,0 +1,46 @@
+name: WearWise
+options:
+  bundleIdPrefix: com.pradeeplobo
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+    TARGETED_DEVICE_FAMILY: "1"
+    CODE_SIGN_STYLE: Automatic
+targets:
+  WearWise:
+    type: application
+    platform: iOS
+    sources: [WearWise]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pradeeplobo.WearWise
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: WearWise
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSCameraUsageDescription: "WearWise uses the camera to photograph clothing for your wardrobe. Photos stay on your iPhone."
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+  WearWiseTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [WearWiseTests]
+    dependencies:
+      - target: WearWise
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.pradeeplobo.WearWiseTests
+schemes:
+  WearWise:
+    build:
+      targets:
+        WearWise: all
+        WearWiseTests: [test]
+    test:
+      targets: [WearWiseTests]
