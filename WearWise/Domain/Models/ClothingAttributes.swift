@@ -7,6 +7,40 @@ enum ClothingCategory: String, CaseIterable, Sendable, Codable {
     var displayName: String { rawValue.capitalized }
 }
 
+/// What kind of accessory an item is. Drives accessory rules (a belt matches the shoes).
+enum AccessoryKind: String, CaseIterable, Sendable, Codable {
+    case belt, bag, scarf, hat, watch, jewelry, other
+
+    var displayName: String {
+        switch self {
+        case .jewelry: "Jewellery"
+        default: rawValue.capitalized
+        }
+    }
+
+    private static let keywords: [(AccessoryKind, [String])] = [
+        (.belt, ["belt"]),
+        (.bag, ["bag", "handbag", "backpack", "tote", "purse", "clutch", "satchel"]),
+        (.scarf, ["scarf", "shawl", "stole"]),
+        (.hat, ["hat", "cap", "beanie", "beret", "fedora"]),
+        (.watch, ["watch"]),
+        (.jewelry, ["necklace", "bracelet", "ring", "earring", "jewelry", "jewellery", "pendant", "brooch"]),
+    ]
+
+    /// Guesses the kind from a name or classifier labels ("Brown leather belt" → belt). Nil if nothing matches.
+    static func infer(from texts: [String]) -> AccessoryKind? {
+        for text in texts {
+            let words = Set(text.lowercased().split { !$0.isLetter }.map { word -> String in
+                word.count > 3 && word.hasSuffix("s") ? String(word.dropLast()) : String(word)
+            })
+            for (kind, keys) in keywords where keys.contains(where: words.contains) {
+                return kind
+            }
+        }
+        return nil
+    }
+}
+
 /// How dressy an item is. Central to outfit matching later on.
 enum Formality: String, CaseIterable, Sendable, Codable {
     case casual, smartCasual, formal

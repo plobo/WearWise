@@ -19,6 +19,8 @@ struct ClothingItem: Identifiable, Sendable, Hashable {
     let id: UUID
     var name: String
     var category: ClothingCategory
+    /// Set by the user (or guessed when adding) for accessories; nil for other categories.
+    var accessoryKind: AccessoryKind? = nil
     var primaryColor: ClothingColor
     var secondaryColors: [ClothingColor]
     var pattern: ClothingPattern
@@ -32,6 +34,13 @@ struct ClothingItem: Identifiable, Sendable, Hashable {
     var dateModified: Date
     var aiStatus: AIAnalysisStatus
 
+    /// The accessory kind to use in rules: the saved one, else guessed from the name, else "other".
+    /// Nil for anything that isn't an accessory.
+    var resolvedAccessoryKind: AccessoryKind? {
+        guard category == .accessories else { return nil }
+        return accessoryKind ?? AccessoryKind.infer(from: [name]) ?? .other
+    }
+
     /// The image to show: the cut-out when available, otherwise the original photo.
     var displayImagePath: String { cutoutPath ?? imagePath }
 
@@ -44,6 +53,8 @@ struct ClothingItem: Identifiable, Sendable, Hashable {
 struct ClothingDraft: Equatable, Sendable {
     var name: String = ""
     var category: ClothingCategory?
+    /// Only meaningful when `category` is accessories.
+    var accessoryKind: AccessoryKind?
     var primaryColor: ClothingColor?
     var secondaryColors: [ClothingColor] = []
     var pattern: ClothingPattern = .unknown
@@ -54,6 +65,7 @@ struct ClothingDraft: Equatable, Sendable {
     init(item: ClothingItem) {
         name = item.name
         category = item.category
+        accessoryKind = item.accessoryKind
         primaryColor = item.primaryColor
         secondaryColors = item.secondaryColors
         pattern = item.pattern
@@ -63,6 +75,9 @@ struct ClothingDraft: Equatable, Sendable {
     init(analysis: ClothingAnalysis) {
         name = analysis.name
         category = analysis.category
+        if analysis.category == .accessories {
+            accessoryKind = AccessoryKind.infer(from: analysis.visionLabels.map(\.identifier) + [analysis.name])
+        }
         primaryColor = analysis.colors.first?.color
         secondaryColors = Array(analysis.colors.dropFirst().map(\.color).prefix(2))
         pattern = analysis.pattern
@@ -82,6 +97,11 @@ struct ClothingDraft: Equatable, Sendable {
     }
 
     var isComplete: Bool { missingFields.isEmpty }
+
+    /// The accessory kind to save: kept only for accessories.
+    var normalizedAccessoryKind: AccessoryKind? {
+        category == .accessories ? accessoryKind : nil
+    }
 
     /// Secondary colours never repeat the primary colour.
     var normalizedSecondaryColors: [ClothingColor] {

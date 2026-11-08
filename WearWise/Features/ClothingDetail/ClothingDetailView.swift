@@ -48,6 +48,9 @@ struct ClothingDetailView: View {
 
                 Section("Details") {
                     LabeledContent("Category", value: item.category.displayName)
+                    if let kind = item.resolvedAccessoryKind {
+                        LabeledContent("Type", value: kind.displayName)
+                    }
                     LabeledContent("Casual or formal", value: item.formality.displayName)
                     LabeledContent("Colours") {
                         HStack(spacing: 6) {

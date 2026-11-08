@@ -130,6 +130,12 @@ struct ClothingFormFields: View {
             } label: {
                 labelText("Category", suggested: suggestion?.category != nil && suggestion?.category == draft.category)
             }
+            if draft.category == .accessories {
+                Picker("Type", selection: $draft.accessoryKind) {
+                    Text("Not set").tag(AccessoryKind?.none)
+                    ForEach(AccessoryKind.allCases, id: \.self) { Text($0.displayName).tag(Optional($0)) }
+                }
+            }
             Picker(selection: $draft.formality) {
                 Text("Choose…").tag(Formality?.none)
                 ForEach(Formality.allCases, id: \.self) { Text($0.displayName).tag(Optional($0)) }

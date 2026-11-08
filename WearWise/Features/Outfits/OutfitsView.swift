@@ -107,7 +107,7 @@ private struct OutfitRow: View {
     var body: some View {
         HStack(spacing: 12) {
             HStack(spacing: 4) {
-                ForEach(resolved.pieces) { item in
+                ForEach(resolved.corePieces) { item in
                     ItemThumbnail(item: item, padding: 4)
                         .frame(width: thumbnailSize, height: thumbnailSize)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -133,13 +133,15 @@ private struct OutfitRow: View {
         .accessibilityLabel("\(resolved.pieces.map(\.name).formatted(.list(type: .and))). \(wearSummary)")
     }
 
-    private var thumbnailSize: CGFloat { resolved.pieces.count > 3 ? 38 : 48 }
+    private let thumbnailSize: CGFloat = 48
 
-    /// "with Light blue oxford", plus the optional layer if there is one.
+    /// "with Light blue oxford", plus any optional extras.
     private var detail: String? {
         var parts: [String] = []
         if resolved.bottom != nil { parts.append("with \(resolved.top.name)") }
-        if let layer = resolved.layer { parts.append("\(layer.name) optional") }
+        if !resolved.extras.isEmpty {
+            parts.append("Optional: \(resolved.extras.map(\.name).formatted(.list(type: .and)))")
+        }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 

@@ -145,8 +145,8 @@ struct MatchResultsView: View {
                     explanation: explanations.state(for: suggestion),
                     isSaved: outfits.isSaved(suggestion.key),
                     isWornToday: outfits.isWornToday(suggestion.key),
-                    onSave: { perform { try outfits.toggleSaved(suggestion.key, layerID: suggestion.layer?.id) } },
-                    onWore: { perform { try outfits.toggleWornToday(suggestion.key, layerID: suggestion.layer?.id) } },
+                    onSave: { perform { try outfits.toggleSaved(suggestion.key, extras: OutfitExtras(suggestion)) } },
+                    onWore: { perform { try outfits.toggleWornToday(suggestion.key, extras: OutfitExtras(suggestion)) } },
                     onHide: {
                         perform {
                             try outfits.hide(suggestion.key)
@@ -222,21 +222,15 @@ private struct OutfitCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
                 if let bottom = suggestion.bottom {
-                    OutfitPiece(item: bottom, maxWidth: pieceWidth)
+                    OutfitPiece(item: bottom)
                     plus
                 }
-                OutfitPiece(item: suggestion.shoes, maxWidth: pieceWidth)
-                if let layer = suggestion.layer {
-                    plus
-                    VStack(spacing: 4) {
-                        OutfitPiece(item: layer, maxWidth: pieceWidth)
-                        Text("Optional")
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                OutfitPiece(item: suggestion.shoes)
+            }
+            if !suggestion.extras.isEmpty {
+                extrasRow
             }
             HStack {
                 Text(suggestion.title).font(.headline)
@@ -268,13 +262,33 @@ private struct OutfitCard: View {
         .accessibilityElement(children: .contain)
     }
 
-    private var pieceWidth: CGFloat { suggestion.layer == nil ? 120 : 92 }
-
     private var plus: some View {
         Image(systemName: "plus")
             .foregroundStyle(.secondary)
-            .frame(maxHeight: pieceWidth)
             .accessibilityHidden(true)
+    }
+
+    /// The optional layer and accessories, smaller than the core pieces.
+    private var extrasRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Optional extras")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            HStack(spacing: 10) {
+                ForEach(suggestion.extras) { item in
+                    VStack(spacing: 4) {
+                        OutfitPiece(item: item, maxWidth: 64)
+                            .frame(width: 64, height: 64)
+                        Text(item.name)
+                            .font(.caption2)
+                            .lineLimit(1)
+                            .frame(width: 72)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Optional extras: \(suggestion.extras.map(\.name).formatted(.list(type: .and)))")
     }
 
     /// Rule-based reasons show at once; validated AI text replaces them when ready.

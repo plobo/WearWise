@@ -20,6 +20,8 @@ struct Outfit: Identifiable, Hashable, Sendable {
     let key: OutfitKey
     /// Outer layer shown with the outfit when it was saved or worn.
     var layerID: UUID?
+    /// Optional accessories shown with the outfit when it was saved or worn.
+    var accessoryIDs: [UUID] = []
     var isSaved: Bool
     /// "Not for me": never suggested again until restored.
     var isHidden: Bool
@@ -41,7 +43,7 @@ protocol OutfitRepository: AnyObject {
     func insert(_ outfit: Outfit) throws
     func update(_ outfit: Outfit) throws
     func delete(id: UUID) throws
-    /// Deletes outfits whose core pieces include the item, and clears it where it was only the layer.
+    /// Deletes outfits whose core pieces include the item, and removes it where it was only an optional extra.
     func deleteOutfits(containing itemID: UUID) throws
 }
 

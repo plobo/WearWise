@@ -19,11 +19,15 @@ struct OutfitExplanationInput: Sendable, Hashable {
         if let bottom = suggestion.bottom { pieces.append(Piece(role: "Pants", item: bottom)) }
         pieces.append(Piece(role: "Shoes", item: suggestion.shoes))
         if let layer = suggestion.layer { pieces.append(Piece(role: "Optional layer", item: layer)) }
+        for accessory in suggestion.accessories {
+            pieces.append(Piece(role: "Optional \(accessory.resolvedAccessoryKind?.displayName.lowercased() ?? "accessory")", item: accessory))
+        }
         self.pieces = pieces
         reasons = suggestion.reasons
     }
 
-    var hasLayer: Bool { pieces.contains { $0.category == .outerwear } }
+    /// Whether the app suggested optional extras, which the text may then talk about adding.
+    var hasOptionalExtras: Bool { pieces.contains { $0.role.hasPrefix("Optional") } }
 
     var fallbackText: String { reasons.joined(separator: ". ") + "." }
 }
@@ -68,6 +72,7 @@ enum OutfitExplanationValidator {
         case .shoes: ["shoe", "footwear"]
         case .dresses: ["dress"]
         case .outerwear: ["layer", "jacket", "coat"]
+        case .accessories: ["accessory", "accessorie"]
         default: []
         }
     }
@@ -85,7 +90,7 @@ enum OutfitExplanationValidator {
         if lower.contains(where: { "$€£¥".contains($0) }) { return nil }
         // With a suggested layer, "add the jacket" or "layer it" describes the app's own choice.
         let layerPhrases: Set<String> = ["add a", "add an", "layer"]
-        let phrases = input.hasLayer ? changePhrases.filter { !layerPhrases.contains($0) } : changePhrases
+        let phrases = input.hasOptionalExtras ? changePhrases.filter { !layerPhrases.contains($0) } : changePhrases
         if phrases.contains(where: { lower.contains($0) }) { return nil }
 
         // Words the outfit itself justifies.
@@ -93,6 +98,8 @@ enum OutfitExplanationValidator {
         for piece in input.pieces {
             allowed.formUnion(words(in: piece.name))
             allowed.formUnion(genericWords(for: piece.category))
+            // "Optional belt" lets the text say "belt" even if the item is named "Tan strap".
+            allowed.formUnion(words(in: piece.role).subtracting(["optional"]))
         }
 
         for word in words(in: text) where !allowed.contains(word) {

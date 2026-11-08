@@ -2,7 +2,7 @@
 
 **Know your wardrobe. Discover your style.**
 
-WearWise is a privacy-first iOS app that helps you decide what to wear using the clothes you already own. Photograph your clothes once. Then pick a top or a dress and WearWise suggests what from your closet goes with it: pants and shoes, plus a jacket when one suits the outfit.
+WearWise is a privacy-first iOS app that helps you decide what to wear using the clothes you already own. Photograph your clothes once. Then pick a top or a dress and WearWise suggests what from your closet goes with it: pants and shoes, plus a jacket, belt or accessory when one suits the outfit.
 
 Everything runs on your iPhone. There's no account, no backend, no cloud storage and no third-party AI service.
 
@@ -51,7 +51,12 @@ Matching is plain, deterministic app logic (`OutfitMatcher`):
 - **Formality.** Casual, smart casual and formal must be within one step of each other, so casual is never mixed with formal.
 - **Variety.** No pants or shoes appear more than twice in one set of results.
 - **Dresses.** A dress is matched with shoes alone, on the same colour and formality rules.
-- **Optional layer.** The outerwear item that pairs best with the top and the pants (or the dress and the shoes) is suggested if its colours work and its formality is within one step. It never changes the ranking.
+- **Optional extras.** These never change the ranking:
+  - **Layer:** the outerwear item that pairs best with the top and the pants (or the dress and the shoes), if its colours work and its formality is within one step.
+  - **Belt:** for outfits with pants, a belt that matches the shoes (brown with brown, black with black). With white or coloured shoes, a neutral belt that suits the pants is used instead.
+  - **One other accessory:** a bag, scarf, hat, watch or piece of jewellery whose colours suit the outfit.
+
+  An accessory's type is guessed from Vision labels or its name, and you can change it.
 - **Your history.** Combinations you marked "Not for me" are never suggested again. Pants worn in the last two days, and shoes worn yesterday, rank lower. This only reorders suggestions and never lowers the rating.
 - **Validation.** Every item ID must exist in the wardrobe and be in the right role. Deleting a piece of clothing also deletes the saved outfits that used it.
 
@@ -69,7 +74,7 @@ If the text is rejected, the model fails, or AI isn't available, the rule-based 
 ## Tech stack
 
 - Swift 6 with strict concurrency, SwiftUI, iOS 26+
-- SwiftData for item records, with a versioned schema and a migration plan. Photos, cut-outs and thumbnails are stored as local files.
+- SwiftData for item records, with five versioned schemas and a step-by-step migration plan (`WardrobeSchemas.swift`). Photos, cut-outs and thumbnails are stored as local files.
 - Apple Foundation Models (on-device) for structured attribute suggestions
 - Vision for image classification and background removal, Core Image and Core Graphics for colour measurement
 - Swift Testing for unit tests
@@ -120,7 +125,7 @@ xcodegen generate
 
 In debug builds you can launch with sample items instead of photographing your own. Add these under **Product → Scheme → Edit Scheme → Run → Arguments**:
 
-- `-seedSampleWardrobe` fills an empty wardrobe with sample tops, pants, shoes, a blazer and a dress.
+- `-seedSampleWardrobe` fills an empty wardrobe with sample tops, pants, shoes, a blazer, a dress, a belt and a scarf.
 - `-openFirstMatch` opens match results for a sample top straight away.
 - `-openOutfits` opens the Outfits tab. With `-seedSampleWardrobe`, one sample outfit is saved and logged as worn today.
 
@@ -150,12 +155,12 @@ Built so far:
 - [x] Save outfits, hide suggestions ("Not for me"), log what you wore; recently worn pants rank lower
 - [x] AI-written outfit explanations, validated against the chosen items
 - [x] Dresses as a starting piece, and an optional jacket or coat in suggestions
+- [x] Optional belt (matched to the shoes) and accessory in suggestions
 
 Next:
 
 - [ ] Tune the colour rules against real wardrobes
 - [ ] Remove the background from items added before cut-outs existed
-- [ ] Accessories in suggestions
 - [ ] Wardrobe insights
 
 The full product plan is in [`requirements/WearWise_Implementation_Plan.md`](requirements/WearWise_Implementation_Plan.md).

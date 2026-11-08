@@ -153,7 +153,7 @@ struct OutfitLayerStorageTests {
         let container = try ModelContainerFactory.make(inMemory: true)
         let store = OutfitStore(repository: SwiftDataOutfitRepository(container: container))
         let dressKey = OutfitKey(topID: dress.id, bottomID: nil, shoesID: loafers.id)
-        try store.toggleSaved(dressKey, layerID: blazer.id)
+        try store.toggleSaved(dressKey, extras: OutfitExtras(layerID: blazer.id))
 
         let reopened = OutfitStore(repository: SwiftDataOutfitRepository(container: container))
         let outfit = try #require(reopened.outfit(for: dressKey))
@@ -177,7 +177,7 @@ struct OutfitLayerStorageTests {
         let container = try ModelContainerFactory.make(inMemory: true)
         let store = OutfitStore(repository: SwiftDataOutfitRepository(container: container))
         let key = OutfitKey(topID: shirt.id, bottomID: chinos.id, shoesID: loafers.id)
-        try store.toggleSaved(key, layerID: blazer.id)
+        try store.toggleSaved(key, extras: OutfitExtras(layerID: blazer.id))
 
         try store.removeOutfits(containing: blazer.id)
         #expect(store.outfit(for: key)?.layerID == nil)

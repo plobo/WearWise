@@ -69,20 +69,20 @@ final class OutfitStore {
 
     // MARK: Changes
 
-    /// - Parameter layerID: The optional layer shown with the outfit, remembered when saving.
-    func toggleSaved(_ key: OutfitKey, layerID: UUID? = nil) throws {
+    /// - Parameter extras: The optional layer and accessories shown with the outfit, remembered when saving.
+    func toggleSaved(_ key: OutfitKey, extras: OutfitExtras? = nil) throws {
         try mutate(key) { outfit in
-            if layerID != nil { outfit.layerID = layerID }
+            extras?.apply(to: &outfit)
             outfit.isSaved.toggle()
             if outfit.isSaved { outfit.isHidden = false }
         }
     }
 
     /// Logs today's wear, or removes it if already logged today.
-    func toggleWornToday(_ key: OutfitKey, layerID: UUID? = nil) throws {
+    func toggleWornToday(_ key: OutfitKey, extras: OutfitExtras? = nil) throws {
         let today = now()
         try mutate(key) { outfit in
-            if layerID != nil { outfit.layerID = layerID }
+            extras?.apply(to: &outfit)
             if let index = outfit.wornDates.firstIndex(where: { calendar.isDate($0, inSameDayAs: today) }) {
                 outfit.wornDates.remove(at: index)
             } else {
@@ -115,8 +115,9 @@ final class OutfitStore {
     func removeOutfits(containing itemID: UUID) throws {
         try repository.deleteOutfits(containing: itemID)
         outfits.removeAll { $0.key.contains(itemID) }
-        for index in outfits.indices where outfits[index].layerID == itemID {
-            outfits[index].layerID = nil
+        for index in outfits.indices {
+            if outfits[index].layerID == itemID { outfits[index].layerID = nil }
+            outfits[index].accessoryIDs.removeAll { $0 == itemID }
         }
     }
 
@@ -142,6 +143,26 @@ final class OutfitStore {
     }
 }
 
+/// The optional pieces shown alongside a suggestion.
+struct OutfitExtras: Equatable, Sendable {
+    var layerID: UUID?
+    var accessoryIDs: [UUID]
+
+    init(layerID: UUID? = nil, accessoryIDs: [UUID] = []) {
+        self.layerID = layerID
+        self.accessoryIDs = accessoryIDs
+    }
+
+    init(_ suggestion: OutfitSuggestion) {
+        self.init(layerID: suggestion.layer?.id, accessoryIDs: suggestion.accessories.map(\.id))
+    }
+
+    func apply(to outfit: inout Outfit) {
+        outfit.layerID = layerID
+        outfit.accessoryIDs = accessoryIDs
+    }
+}
+
 /// An outfit with its clothing resolved against the wardrobe.
 struct ResolvedOutfit: Identifiable, Hashable {
     let outfit: Outfit
@@ -149,9 +170,12 @@ struct ResolvedOutfit: Identifiable, Hashable {
     let bottom: ClothingItem?
     let shoes: ClothingItem
     let layer: ClothingItem?
+    let accessories: [ClothingItem]
 
     var id: UUID { outfit.id }
-    var pieces: [ClothingItem] { [top, bottom, shoes, layer].compactMap { $0 } }
+    var corePieces: [ClothingItem] { [top, bottom, shoes].compactMap { $0 } }
+    var extras: [ClothingItem] { [layer].compactMap { $0 } + accessories }
+    var pieces: [ClothingItem] { corePieces + extras }
 
     /// "Beige chinos + Brown loafers", or "Black dress + Black heels" for dress outfits.
     var title: String {
@@ -160,7 +184,7 @@ struct ResolvedOutfit: Identifiable, Hashable {
     }
 
     /// Returns nil if any core piece is no longer in the wardrobe, so missing clothes are never shown.
-    /// A missing layer is simply left out.
+    /// Missing optional extras are simply left out.
     init?(_ outfit: Outfit, wardrobe: [ClothingItem]) {
         func find(_ id: UUID) -> ClothingItem? { wardrobe.first { $0.id == id } }
         guard let top = find(outfit.key.topID), let shoes = find(outfit.key.shoesID) else { return nil }
@@ -174,5 +198,6 @@ struct ResolvedOutfit: Identifiable, Hashable {
         self.bottom = bottom
         self.shoes = shoes
         layer = outfit.layerID.flatMap(find)
+        accessories = outfit.accessoryIDs.compactMap(find)
     }
 }

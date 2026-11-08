@@ -57,6 +57,7 @@ final class WardrobeStore {
                 id: id,
                 name: draft.trimmedName,
                 category: category,
+                accessoryKind: draft.normalizedAccessoryKind,
                 primaryColor: primary,
                 secondaryColors: draft.normalizedSecondaryColors,
                 pattern: draft.pattern,
@@ -93,6 +94,7 @@ final class WardrobeStore {
         var updated = item
         updated.name = draft.trimmedName
         updated.category = category
+        updated.accessoryKind = draft.normalizedAccessoryKind
         updated.primaryColor = primary
         updated.secondaryColors = draft.normalizedSecondaryColors
         updated.pattern = draft.pattern

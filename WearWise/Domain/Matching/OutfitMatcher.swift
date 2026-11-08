@@ -40,6 +40,8 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
     let shoes: ClothingItem
     /// Optional outer layer that goes with the outfit. Never affects the score.
     var layer: ClothingItem?
+    /// Optional accessories (at most a belt and one other). Never affect the score.
+    var accessories: [ClothingItem] = []
     /// How well the pieces go together, 0...1. Drives the rating and the minimum-quality cut-off.
     let score: Double
     var reasons: [String]
@@ -61,8 +63,10 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
 
     var id: String { [bottom?.id.uuidString ?? "none", shoes.id.uuidString].joined(separator: "-") }
     var isDressOutfit: Bool { bottom == nil }
-    /// The core pieces (without the optional layer).
+    /// The core pieces (without optional extras).
     var itemIDs: [UUID] { [top.id, bottom?.id, shoes.id].compactMap { $0 } }
+    /// The optional layer and accessories, in display order.
+    var extras: [ClothingItem] { [layer].compactMap { $0 } + accessories }
     var key: OutfitKey { OutfitKey(topID: top.id, bottomID: bottom?.id, shoesID: shoes.id) }
 
     var title: String {
@@ -148,8 +152,8 @@ enum OutfitMatcher {
             shoeUses[candidate.shoes.id, default: 0] += 1
         }
 
-        let withLayers = picked.map { addingLayer(to: $0, from: wardrobe) }
-        let valid = withLayers.filter { isValid($0, wardrobe: wardrobe) }
+        let completed = picked.map { addingExtras(to: $0, from: wardrobe) }
+        let valid = completed.filter { isValid($0, wardrobe: wardrobe) }
         if valid.isEmpty {
             // Everything that matched was hidden by the user: say so rather than "no matches".
             let anyHidden = context.hidden.contains { $0.topID == top.id }
@@ -226,11 +230,64 @@ enum OutfitMatcher {
         }?.item
     }
 
-    static func addingLayer(to suggestion: OutfitSuggestion, from wardrobe: [ClothingItem]) -> OutfitSuggestion {
-        guard let layer = bestLayer(for: suggestion, in: wardrobe) else { return suggestion }
+    /// The belt that best suits an outfit with pants. The classic rule: the belt matches the shoes.
+    /// With white or coloured shoes (usually sneakers), a neutral belt that suits the pants is fine.
+    static func bestBelt(for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem]) -> (belt: ClothingItem, matchesShoes: Bool)? {
+        guard let bottom = suggestion.bottom else { return nil }
+        let core = [suggestion.top, bottom, suggestion.shoes]
+        let shoeColor = suggestion.shoes.primaryColor
+        let leatherTones: Set<ClothingColor> = [.brown, .burgundy]
+        let relaxedShoes = shoeColor == .white || !ColorHarmony.isNeutral(shoeColor)
+
+        let scored: [(item: ClothingItem, score: Double, matchesShoes: Bool)] = wardrobe.compactMap { belt in
+            guard belt.resolvedAccessoryKind == .belt, formalitySpread(core + [belt]) < 2 else { return nil }
+            let favorite = belt.isFavorite ? 0.02 : 0
+            if belt.primaryColor == shoeColor { return (belt, 1 + favorite, true) }
+            if leatherTones.contains(belt.primaryColor), leatherTones.contains(shoeColor) { return (belt, 0.8 + favorite, true) }
+            if relaxedShoes, ColorHarmony.isNeutral(belt.primaryColor),
+               ColorHarmony.score(belt.primaryColor, bottom.primaryColor) >= 0.85 {
+                return (belt, 0.6 + favorite, false)
+            }
+            return nil
+        }
+        return scored.max { a, b in
+            a.score != b.score ? a.score < b.score : a.item.name.localizedStandardCompare(b.item.name) == .orderedDescending
+        }.map { ($0.item, $0.matchesShoes) }
+    }
+
+    /// At most one non-belt accessory whose colours suit the outfit and whose formality fits.
+    static func bestAccessory(for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem]) -> ClothingItem? {
+        let core = [suggestion.top, suggestion.bottom, suggestion.shoes].compactMap { $0 }
+        let lower = suggestion.bottom ?? suggestion.shoes
+        let scored: [(item: ClothingItem, score: Double)] = wardrobe.compactMap { item in
+            guard let kind = item.resolvedAccessoryKind, kind != .belt, formalitySpread(core + [item]) < 2 else { return nil }
+            let withTop = ColorHarmony.score(item.primaryColor, suggestion.top.primaryColor)
+            let withLower = ColorHarmony.score(item.primaryColor, lower.primaryColor)
+            guard min(withTop, withLower) >= minimumLayerHarmony else { return nil }
+            return (item, (withTop + withLower) / 2 + (item.isFavorite ? 0.02 : 0))
+        }
+        return scored.max { a, b in
+            a.score != b.score ? a.score < b.score : a.item.name.localizedStandardCompare(b.item.name) == .orderedDescending
+        }?.item
+    }
+
+    /// Adds the optional layer, belt and accessory that suit the outfit. Never changes score or order.
+    static func addingExtras(to suggestion: OutfitSuggestion, from wardrobe: [ClothingItem]) -> OutfitSuggestion {
         var result = suggestion
-        result.layer = layer
-        result.reasons.append("The \(layer.name.lowercased()) works over it when it's cooler")
+        if let layer = bestLayer(for: suggestion, in: wardrobe) {
+            result.layer = layer
+            result.reasons.append("The \(layer.name.lowercased()) works over it when it's cooler")
+        }
+        if let (belt, matchesShoes) = bestBelt(for: suggestion, in: wardrobe) {
+            result.accessories.append(belt)
+            result.reasons.append(matchesShoes
+                ? "The \(belt.name.lowercased()) matches your \(suggestion.shoes.name.lowercased())"
+                : "The \(belt.name.lowercased()) suits the \(suggestion.bottom?.name.lowercased() ?? "outfit")")
+        }
+        if let accessory = bestAccessory(for: suggestion, in: wardrobe) {
+            result.accessories.append(accessory)
+            result.reasons.append("The \(accessory.name.lowercased()) finishes the look")
+        }
         return result
     }
 
@@ -258,6 +315,13 @@ enum OutfitMatcher {
             guard let bottom = suggestion.bottom, owned[bottom.id]?.category == .bottoms else { return false }
         }
         if let layer = suggestion.layer, owned[layer.id]?.category != .outerwear { return false }
+
+        let accessoryIDs = suggestion.accessories.map(\.id)
+        guard Set(accessoryIDs).count == accessoryIDs.count, !accessoryIDs.contains(where: allIDs.contains) else { return false }
+        for accessory in suggestion.accessories {
+            guard let item = owned[accessory.id], item.category == .accessories else { return false }
+            if item.resolvedAccessoryKind == .belt, suggestion.bottom == nil { return false }
+        }
         return true
     }
 
