@@ -107,6 +107,42 @@ final class WardrobeStore {
         return updated
     }
 
+    /// Adds a background-removed image to an existing item. The original photo is kept.
+    @discardableResult
+    func attachCutout(_ cutout: ForegroundSegmenter.Cutout, to item: ClothingItem) throws -> ClothingItem {
+        let base = item.id.uuidString
+        let cutoutPath = try imageStore.save(cutout.pngData, fileName: "\(base)_cutout.png")
+        let thumbnailPath = try imageStore.save(cutout.thumbnailPNGData, fileName: "\(base)_thumb.png")
+        var updated = item
+        updated.cutoutPath = cutoutPath
+        updated.thumbnailPath = thumbnailPath
+        updated.dateModified = now()
+        do {
+            try save(updated)
+        } catch {
+            if item.cutoutPath != cutoutPath { try? imageStore.delete(cutoutPath) }
+            if item.thumbnailPath != thumbnailPath { try? imageStore.delete(thumbnailPath) }
+            throw error
+        }
+        if item.thumbnailPath != thumbnailPath { try? imageStore.delete(item.thumbnailPath) }
+        return updated
+    }
+
+    /// Goes back to the original photo, with a thumbnail regenerated from it.
+    @discardableResult
+    func removeCutout(from item: ClothingItem, originalThumbnail: Data) throws -> ClothingItem {
+        guard let cutoutPath = item.cutoutPath else { return item }
+        let thumbnailPath = try imageStore.save(originalThumbnail, fileName: "\(item.id.uuidString)_thumb.jpg")
+        var updated = item
+        updated.cutoutPath = nil
+        updated.thumbnailPath = thumbnailPath
+        updated.dateModified = now()
+        try save(updated)
+        try? imageStore.delete(cutoutPath)
+        if item.thumbnailPath != thumbnailPath { try? imageStore.delete(item.thumbnailPath) }
+        return updated
+    }
+
     func toggleFavorite(_ item: ClothingItem) throws {
         var updated = item
         updated.isFavorite.toggle()

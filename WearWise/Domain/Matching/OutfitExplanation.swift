@@ -11,8 +11,10 @@ struct OutfitExplanationInput: Sendable, Hashable {
     }
 
     let pieces: [Piece]
-    /// Rule-based reasons, used as the facts to rephrase and as the fallback text.
-    let reasons: [String]
+    /// Every rule-based reason, given to the model as facts to rephrase.
+    let facts: [String]
+    /// The short rule-based summary shown when there's no AI text.
+    let fallbackText: String
 
     init(_ suggestion: OutfitSuggestion) {
         var pieces = [Piece(role: suggestion.isDressOutfit ? "Dress" : "Top", item: suggestion.top)]
@@ -23,13 +25,14 @@ struct OutfitExplanationInput: Sendable, Hashable {
             pieces.append(Piece(role: "Optional \(accessory.resolvedAccessoryKind?.displayName.lowercased() ?? "accessory")", item: accessory))
         }
         self.pieces = pieces
-        reasons = suggestion.reasons
+        facts = suggestion.allReasons
+        fallbackText = suggestion.summary
     }
 
     /// Whether the app suggested optional extras, which the text may then talk about adding.
     var hasOptionalExtras: Bool { pieces.contains { $0.role.hasPrefix("Optional") } }
 
-    var fallbackText: String { reasons.joined(separator: ". ") + "." }
+    var factsText: String { facts.joined(separator: ". ") + "." }
 }
 
 extension OutfitExplanationInput.Piece {

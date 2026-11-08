@@ -156,11 +156,12 @@ Built so far:
 - [x] AI-written outfit explanations, validated against the chosen items
 - [x] Dresses as a starting piece, and an optional jacket or coat in suggestions
 - [x] Optional belt (matched to the shoes) and accessory in suggestions
+- [x] "Remove background" for existing items, with an optional main-colour update
+- [x] Short rule-based reasons (at most three sentences) when AI isn't available
 
 Next:
 
 - [ ] Tune the colour rules against real wardrobes
-- [ ] Remove the background from items added before cut-outs existed
 - [ ] Wardrobe insights
 
 The full product plan is in [`requirements/WearWise_Implementation_Plan.md`](requirements/WearWise_Implementation_Plan.md).

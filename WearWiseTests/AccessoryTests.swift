@@ -78,7 +78,7 @@ struct AccessoryMatchingTests {
     @Test func beltMatchesTheShoes() {
         let s = first(shirt, [shirt, chinos, loafers, brownBelt, blackBelt])
         #expect(s?.accessories.map(\.id) == [brownBelt.id])
-        #expect(s?.reasons.contains("The brown belt matches your brown loafers") == true)
+        #expect(s?.extraReasons.contains("The brown belt matches your brown loafers") == true)
     }
 
     @Test func noBeltWhenOnlyAClashingBeltExists() {
@@ -101,7 +101,7 @@ struct AccessoryMatchingTests {
     @Test func oneOtherAccessoryWhenColoursWork() {
         let s = first(shirt, [shirt, chinos, loafers, navyScarf, redHat])
         #expect(s?.accessories.map(\.id) == [navyScarf.id], "Red hat clashes with light blue")
-        #expect(s?.reasons.last == "The navy scarf finishes the look")
+        #expect(s?.extraReasons.last == "The navy scarf finishes the look")
     }
 
     @Test func atMostABeltAndOneOther() {

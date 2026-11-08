@@ -66,7 +66,7 @@ struct LayerSelectionTests {
     @Test func addsMatchingLayerWithReason() {
         let s = first([shirt, chinos, loafers, blazer])
         #expect(s?.layer?.id == blazer.id)
-        #expect(s?.reasons.last == "The navy blazer works over it when it's cooler")
+        #expect(s?.extraReasons == ["The navy blazer works over it when it's cooler"])
     }
 
     @Test func layerNeverChangesScoreOrOrder() {

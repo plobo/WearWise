@@ -306,7 +306,7 @@ private struct OutfitCard: View {
             .transition(.opacity)
         } else {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(OutfitExplanationInput(suggestion).fallbackText)
+                Text(suggestion.summary)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 if explanation == .pending {

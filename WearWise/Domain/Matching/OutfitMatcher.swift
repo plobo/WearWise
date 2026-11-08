@@ -44,13 +44,18 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
     var accessories: [ClothingItem] = []
     /// How well the pieces go together, 0...1. Drives the rating and the minimum-quality cut-off.
     let score: Double
-    var reasons: [String]
+    /// Core reasons, always ending with the formality note: colour, shoes (or dress + shoes), formality.
+    let reasons: [String]
+    /// "You wore the beige chinos yesterday", when the pants were worn recently.
+    var recencyNote: String?
+    /// One line per optional extra ("The brown belt matches your brown loafers").
+    var extraReasons: [String] = []
     /// Ordering score: `score` lowered for recently worn pieces. Equal to `score` without history.
     var rankScore: Double
 
     init(
         top: ClothingItem, bottom: ClothingItem?, shoes: ClothingItem, layer: ClothingItem? = nil,
-        score: Double, reasons: [String], rankScore: Double? = nil
+        score: Double, reasons: [String], recencyNote: String? = nil, rankScore: Double? = nil
     ) {
         self.top = top
         self.bottom = bottom
@@ -58,6 +63,7 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
         self.layer = layer
         self.score = score
         self.reasons = reasons
+        self.recencyNote = recencyNote
         self.rankScore = rankScore ?? score
     }
 
@@ -72,6 +78,20 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
     var title: String {
         if let bottom { return "\(bottom.name) + \(shoes.name)" }
         return "\(top.name) + \(shoes.name)"
+    }
+
+    /// Everything the app knows about why this works, used as facts for AI explanations.
+    var allReasons: [String] { reasons + [recencyNote].compactMap { $0 } + extraReasons }
+
+    /// At most three short sentences for display without AI: colour, shoes, then the recency note
+    /// if there is one (replacing the formality note). Extras are shown in their own row.
+    var summary: String {
+        var lines = reasons
+        if let recencyNote {
+            if lines.count > 1 { lines.removeLast() }
+            lines.append(recencyNote)
+        }
+        return lines.joined(separator: ". ") + "."
     }
 
     var rating: String {
@@ -189,14 +209,15 @@ enum OutfitMatcher {
         let favoriteBonus = [bottom, shoes].compactMap { $0 }.filter(\.isFavorite).isEmpty ? 0 : 0.02
         let score = min(1, 0.6 * colorScore + 0.4 * formalityScore + favoriteBonus)
 
-        var reasonList = bottom.map {
+        let reasonList = bottom.map {
             reasons(top: top, bottom: $0, shoes: shoes, topBottom: topBottom, bottomShoes: bottomShoes, spread: spread)
         } ?? dressReasons(dress: top, shoes: shoes, spread: spread)
 
         var penalty = 0.0
+        var recencyNote: String?
         if let bottom, let days = context.daysSinceWorn(bottom.id), days <= recentBottomDays {
             penalty += recentBottomPenalty
-            reasonList.append("You wore the \(bottom.name.lowercased()) \(dayPhrase(days))")
+            recencyNote = "You wore the \(bottom.name.lowercased()) \(dayPhrase(days))"
         }
         if let days = context.daysSinceWorn(shoes.id), days <= recentShoesDays {
             penalty += recentShoesPenalty
@@ -208,6 +229,7 @@ enum OutfitMatcher {
             shoes: shoes,
             score: score,
             reasons: reasonList,
+            recencyNote: recencyNote,
             rankScore: max(0, score - penalty)
         )
     }
@@ -276,17 +298,17 @@ enum OutfitMatcher {
         var result = suggestion
         if let layer = bestLayer(for: suggestion, in: wardrobe) {
             result.layer = layer
-            result.reasons.append("The \(layer.name.lowercased()) works over it when it's cooler")
+            result.extraReasons.append("The \(layer.name.lowercased()) works over it when it's cooler")
         }
         if let (belt, matchesShoes) = bestBelt(for: suggestion, in: wardrobe) {
             result.accessories.append(belt)
-            result.reasons.append(matchesShoes
+            result.extraReasons.append(matchesShoes
                 ? "The \(belt.name.lowercased()) matches your \(suggestion.shoes.name.lowercased())"
                 : "The \(belt.name.lowercased()) suits the \(suggestion.bottom?.name.lowercased() ?? "outfit")")
         }
         if let accessory = bestAccessory(for: suggestion, in: wardrobe) {
             result.accessories.append(accessory)
-            result.reasons.append("The \(accessory.name.lowercased()) finishes the look")
+            result.extraReasons.append("The \(accessory.name.lowercased()) finishes the look")
         }
         return result
     }

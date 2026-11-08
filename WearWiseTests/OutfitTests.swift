@@ -201,14 +201,15 @@ struct MatchingWithHistoryTests {
         let list = suggestions(context(lastWorn: [chinos.id: 1]))
         #expect(list.first?.bottom?.id == greyTrousers.id)
         let chinosOutfit = list.first { $0.bottom?.id == chinos.id }
-        #expect(chinosOutfit?.reasons.last == "You wore the beige chinos yesterday")
+        #expect(chinosOutfit?.recencyNote == "You wore the beige chinos yesterday")
+        #expect(chinosOutfit?.summary == "Beige pants keep the light blue top in focus. Brown shoes keep it grounded. You wore the beige chinos yesterday.")
         #expect(chinosOutfit?.rating == "Great match", "Rating reflects fit, not recency")
     }
 
     @Test func pantsWornLongAgoAreNotPenalised() {
         let list = suggestions(context(lastWorn: [chinos.id: 5]))
         #expect(list.first?.bottom?.id == chinos.id)
-        #expect(list.first?.reasons.contains { $0.hasPrefix("You wore") } == false)
+        #expect(list.first?.recencyNote == nil)
     }
 
     @Test func recencyNeverDropsOutfitsBelowTheQualityBar() {

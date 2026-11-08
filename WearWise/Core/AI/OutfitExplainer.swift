@@ -52,7 +52,7 @@ struct FoundationModelsOutfitExplainer: OutfitExplaining {
         return """
         Outfit:
         \(pieces.joined(separator: "\n"))
-        Facts: \(input.fallbackText)
+        Facts: \(input.factsText)
         Explain why this outfit works.
         """
     }

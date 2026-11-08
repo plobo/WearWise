@@ -4,7 +4,9 @@ struct ClothingDetailView: View {
     let itemID: UUID
 
     @Environment(WardrobeStore.self) private var wardrobe
+    @Environment(AppDependencies.self) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @State private var photoModel: ItemPhotoModel?
     @State private var editing = false
     @State private var confirmingDelete = false
     @State private var errorMessage: String?
@@ -33,6 +35,7 @@ struct ClothingDetailView: View {
                         }
                         .pickerStyle(.segmented)
                     }
+                    photoAction(for: item)
                 }
 
                 if OutfitMatcher.startingCategories.contains(item.category) {
@@ -74,6 +77,24 @@ struct ClothingDetailView: View {
             }
             .navigationTitle(item.name)
             .navigationBarTitleDisplayMode(.inline)
+            .task {
+                if photoModel == nil {
+                    photoModel = ItemPhotoModel(processor: dependencies.imageProcessor, segmenter: dependencies.segmenter)
+                }
+            }
+            .alert(
+                "Update the main colour?",
+                isPresented: Binding(
+                    get: { photoModel?.colorSuggestion != nil },
+                    set: { if !$0 { photoModel?.colorSuggestion = nil } }
+                ),
+                presenting: photoModel?.colorSuggestion
+            ) { suggestion in
+                Button("Change to \(suggestion.suggested.displayName)") { photoModel?.acceptColorSuggestion(in: wardrobe) }
+                Button("Keep \(suggestion.current.displayName)", role: .cancel) {}
+            } message: { suggestion in
+                Text("Without the background, this item looks mostly \(suggestion.suggested.displayName.lowercased()), not \(suggestion.current.displayName.lowercased()). Matching uses the main colour.")
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button {
@@ -105,6 +126,37 @@ struct ClothingDetailView: View {
             }
         } else {
             ContentUnavailableView("Item not found", systemImage: "questionmark.square.dashed")
+        }
+    }
+
+    @ViewBuilder
+    private func photoAction(for item: ClothingItem) -> some View {
+        if let model = photoModel {
+            if model.isWorking {
+                HStack(spacing: 8) {
+                    ProgressView()
+                    Text(item.cutoutPath == nil ? "Removing background…" : "Restoring original photo…")
+                        .foregroundStyle(.secondary)
+                }
+            } else if item.cutoutPath == nil {
+                Button {
+                    Task { await model.removeBackground(of: item, in: wardrobe) }
+                } label: {
+                    Label("Remove background", systemImage: "scissors")
+                }
+            } else {
+                Button {
+                    showOriginal = false
+                    Task { await model.restoreOriginal(of: item, in: wardrobe) }
+                } label: {
+                    Label("Use original photo instead", systemImage: "photo")
+                }
+            }
+            if case .failed(let message) = model.state {
+                Label(message, systemImage: "exclamationmark.triangle")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
