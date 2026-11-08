@@ -232,7 +232,8 @@ struct ActionRowLabel: View {
     let title: String
     let systemImage: String
 
-    init(_ title: String, systemImage: String) {
+    /// Nonisolated so it can be built inside PhotosPicker's label closure.
+    nonisolated init(_ title: String, systemImage: String) {
         self.title = title
         self.systemImage = systemImage
     }

@@ -58,6 +58,7 @@ Matching is plain, deterministic app logic (`OutfitMatcher`):
 
   An accessory's type is guessed from Vision labels or its name, and you can change it.
 - **Your history.** Combinations you marked "Not for me" are never suggested again. Pants worn in the last two days, and shoes worn yesterday, rank lower. This only reorders suggestions and never lowers the rating.
+- **Your taste.** In Profile, choose colours you love or avoid and your usual style. Pants and shoes in a loved colour move up slightly, while ones in an avoided colour move down but stay available. Outfits at your usual style get a small boost. Jackets and accessories in avoided colours aren't suggested. Preferences only reorder suggestions: they never change ratings or which outfits qualify.
 - **Validation.** Every item ID must exist in the wardrobe and be in the right role. Deleting a piece of clothing also deletes the saved outfits that used it.
 
 ### AI outfit explanations
@@ -161,6 +162,7 @@ Built so far:
 - [x] Optional belt (matched to the shoes) and accessory in suggestions
 - [x] "Remove background" for existing items, with an optional main-colour update
 - [x] Short rule-based reasons (at most three sentences) when AI isn't available
+- [x] Style preferences (colours you love or avoid, usual style) that reorder suggestions
 - [x] UI tests for the main flows, plus automated accessibility audits at default and large text sizes
 - [x] Insights: most versatile pants and shoes, tops and dresses that need a match, most worn and not worn lately, counts and colours
 

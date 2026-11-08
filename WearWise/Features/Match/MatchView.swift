@@ -86,6 +86,7 @@ struct MatchResultsView: View {
     @Environment(WardrobeStore.self) private var wardrobe
     @Environment(OutfitStore.self) private var outfits
     @Environment(OutfitExplanationProvider.self) private var explanations
+    @Environment(PreferencesStore.self) private var preferences
     @State private var lastHidden: OutfitKey?
     @State private var errorMessage: String?
 
@@ -136,7 +137,7 @@ struct MatchResultsView: View {
 
     @ViewBuilder
     private func results(for top: ClothingItem) -> some View {
-        switch OutfitMatcher.match(top: top, wardrobe: wardrobe.items, context: outfits.matchContext()) {
+        switch OutfitMatcher.match(top: top, wardrobe: wardrobe.items, context: matchContext) {
         case .suggestions(let suggestions):
             Text("Best outfits from your closet")
                 .font(.title3.weight(.semibold))
@@ -181,6 +182,13 @@ struct MatchResultsView: View {
                 description: Text("You've hidden every good match for this \(top.category == .dresses ? "dress" : "top"). Restore them from Hidden suggestions in the Outfits tab.")
             )
         }
+    }
+
+    /// History plus taste: both only reorder suggestions.
+    private var matchContext: MatchContext {
+        var context = outfits.matchContext()
+        context.preferences = preferences.preferences
+        return context
     }
 
     @ViewBuilder

@@ -48,6 +48,8 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
     let reasons: [String]
     /// "You wore the beige chinos yesterday", when the pants were worn recently.
     var recencyNote: String?
+    /// "Uses navy, one of your favourite colours" or "Includes red, a colour you avoid".
+    var preferenceNote: String?
     /// One line per optional extra ("The brown belt matches your brown loafers").
     var extraReasons: [String] = []
     /// Ordering score: `score` lowered for recently worn pieces. Equal to `score` without history.
@@ -55,7 +57,8 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
 
     init(
         top: ClothingItem, bottom: ClothingItem?, shoes: ClothingItem, layer: ClothingItem? = nil,
-        score: Double, reasons: [String], recencyNote: String? = nil, rankScore: Double? = nil
+        score: Double, reasons: [String], recencyNote: String? = nil, preferenceNote: String? = nil,
+        rankScore: Double? = nil
     ) {
         self.top = top
         self.bottom = bottom
@@ -64,6 +67,7 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
         self.score = score
         self.reasons = reasons
         self.recencyNote = recencyNote
+        self.preferenceNote = preferenceNote
         self.rankScore = rankScore ?? score
     }
 
@@ -81,15 +85,15 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
     }
 
     /// Everything the app knows about why this works, used as facts for AI explanations.
-    var allReasons: [String] { reasons + [recencyNote].compactMap { $0 } + extraReasons }
+    var allReasons: [String] { reasons + [recencyNote, preferenceNote].compactMap { $0 } + extraReasons }
 
-    /// At most three short sentences for display without AI: colour, shoes, then the recency note
-    /// if there is one (replacing the formality note). Extras are shown in their own row.
+    /// At most three short sentences for display without AI: colour, shoes, then the most personal
+    /// note (recent wear, then preference) in place of the formality note. Extras have their own row.
     var summary: String {
         var lines = reasons
-        if let recencyNote {
+        if let note = recencyNote ?? preferenceNote {
             if lines.count > 1 { lines.removeLast() }
-            lines.append(recencyNote)
+            lines.append(note)
         }
         return lines.joined(separator: ". ") + "."
     }
@@ -172,7 +176,7 @@ enum OutfitMatcher {
             shoeUses[candidate.shoes.id, default: 0] += 1
         }
 
-        let completed = picked.map { addingExtras(to: $0, from: wardrobe) }
+        let completed = picked.map { addingExtras(to: $0, from: wardrobe, preferences: context.preferences) }
         let valid = completed.filter { isValid($0, wardrobe: wardrobe) }
         if valid.isEmpty {
             // Everything that matched was hidden by the user: say so rather than "no matches".
@@ -222,6 +226,9 @@ enum OutfitMatcher {
         if let days = context.daysSinceWorn(shoes.id), days <= recentShoesDays {
             penalty += recentShoesPenalty
         }
+        let (preferenceAdjustment, preferenceNote) = preferenceEffect(
+            for: [bottom, shoes].compactMap { $0 }, preferences: context.preferences
+        )
 
         return OutfitSuggestion(
             top: top,
@@ -230,22 +237,50 @@ enum OutfitMatcher {
             score: score,
             reasons: reasonList,
             recencyNote: recencyNote,
-            rankScore: max(0, score - penalty)
+            preferenceNote: preferenceNote,
+            rankScore: max(0, score - penalty + preferenceAdjustment)
         )
     }
 
+    static let favoriteColorBonus = 0.03
+    static let avoidedColorPenalty = 0.15
+    static let usualFormalityBonus = 0.04
+
+    /// How the user's taste shifts the order of an outfit, and the note that explains it.
+    /// Only the pieces the app chose count (not the starting piece the user picked).
+    static func preferenceEffect(for chosen: [ClothingItem], preferences: StylePreferences) -> (Double, String?) {
+        guard !preferences.isEmpty, !chosen.isEmpty else { return (0, nil) }
+        var adjustment = 0.0
+        var note: String?
+
+        let avoided = chosen.filter { preferences.avoidedColors.contains($0.primaryColor) }
+        let loved = chosen.filter { preferences.favoriteColors.contains($0.primaryColor) }
+        if let first = avoided.first {
+            adjustment -= avoidedColorPenalty * Double(avoided.count)
+            note = "Includes \(first.primaryColor.displayName.lowercased()), a colour you avoid"
+        } else if let first = loved.first {
+            adjustment += favoriteColorBonus * Double(loved.count)
+            note = "Uses \(first.primaryColor.displayName.lowercased()), one of your favourite colours"
+        }
+        if let usual = preferences.usualFormality, chosen.allSatisfy({ $0.formality == usual }) {
+            adjustment += usualFormalityBonus
+        }
+        return (adjustment, note)
+    }
+
     /// The outer layer that best suits the outfit, if any pairs well on colour and dress level.
-    static func bestLayer(for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem]) -> ClothingItem? {
+    static func bestLayer(for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem], preferences: StylePreferences = .none) -> ClothingItem? {
         let core = [suggestion.top, suggestion.bottom, suggestion.shoes].compactMap { $0 }
         let lower = suggestion.bottom ?? suggestion.shoes
         let scored: [(item: ClothingItem, score: Double)] = wardrobe.compactMap { layer in
             guard layer.category == .outerwear, !suggestion.itemIDs.contains(layer.id),
+                  !preferences.avoidedColors.contains(layer.primaryColor),
                   formalitySpread(core + [layer]) < 2
             else { return nil }
             let withTop = ColorHarmony.score(layer.primaryColor, suggestion.top.primaryColor)
             let withLower = ColorHarmony.score(layer.primaryColor, lower.primaryColor)
             guard min(withTop, withLower) >= minimumLayerHarmony else { return nil }
-            return (layer, (withTop + withLower) / 2 + (layer.isFavorite ? 0.02 : 0))
+            return (layer, (withTop + withLower) / 2 + (layer.isFavorite ? 0.02 : 0) + favoriteColorBoost(layer, preferences))
         }
         return scored.max { a, b in
             a.score != b.score ? a.score < b.score : a.item.name.localizedStandardCompare(b.item.name) == .orderedDescending
@@ -254,7 +289,9 @@ enum OutfitMatcher {
 
     /// The belt that best suits an outfit with pants. The classic rule: the belt matches the shoes.
     /// With white or coloured shoes (usually sneakers), a neutral belt that suits the pants is fine.
-    static func bestBelt(for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem]) -> (belt: ClothingItem, matchesShoes: Bool)? {
+    static func bestBelt(
+        for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem], preferences: StylePreferences = .none
+    ) -> (belt: ClothingItem, matchesShoes: Bool)? {
         guard let bottom = suggestion.bottom else { return nil }
         let core = [suggestion.top, bottom, suggestion.shoes]
         let shoeColor = suggestion.shoes.primaryColor
@@ -262,7 +299,8 @@ enum OutfitMatcher {
         let relaxedShoes = shoeColor == .white || !ColorHarmony.isNeutral(shoeColor)
 
         let scored: [(item: ClothingItem, score: Double, matchesShoes: Bool)] = wardrobe.compactMap { belt in
-            guard belt.resolvedAccessoryKind == .belt, formalitySpread(core + [belt]) < 2 else { return nil }
+            guard belt.resolvedAccessoryKind == .belt, !preferences.avoidedColors.contains(belt.primaryColor),
+                  formalitySpread(core + [belt]) < 2 else { return nil }
             let favorite = belt.isFavorite ? 0.02 : 0
             if belt.primaryColor == shoeColor { return (belt, 1 + favorite, true) }
             if leatherTones.contains(belt.primaryColor), leatherTones.contains(shoeColor) { return (belt, 0.8 + favorite, true) }
@@ -278,15 +316,16 @@ enum OutfitMatcher {
     }
 
     /// At most one non-belt accessory whose colours suit the outfit and whose formality fits.
-    static func bestAccessory(for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem]) -> ClothingItem? {
+    static func bestAccessory(for suggestion: OutfitSuggestion, in wardrobe: [ClothingItem], preferences: StylePreferences = .none) -> ClothingItem? {
         let core = [suggestion.top, suggestion.bottom, suggestion.shoes].compactMap { $0 }
         let lower = suggestion.bottom ?? suggestion.shoes
         let scored: [(item: ClothingItem, score: Double)] = wardrobe.compactMap { item in
-            guard let kind = item.resolvedAccessoryKind, kind != .belt, formalitySpread(core + [item]) < 2 else { return nil }
+            guard let kind = item.resolvedAccessoryKind, kind != .belt, !preferences.avoidedColors.contains(item.primaryColor),
+                  formalitySpread(core + [item]) < 2 else { return nil }
             let withTop = ColorHarmony.score(item.primaryColor, suggestion.top.primaryColor)
             let withLower = ColorHarmony.score(item.primaryColor, lower.primaryColor)
             guard min(withTop, withLower) >= minimumLayerHarmony else { return nil }
-            return (item, (withTop + withLower) / 2 + (item.isFavorite ? 0.02 : 0))
+            return (item, (withTop + withLower) / 2 + (item.isFavorite ? 0.02 : 0) + favoriteColorBoost(item, preferences))
         }
         return scored.max { a, b in
             a.score != b.score ? a.score < b.score : a.item.name.localizedStandardCompare(b.item.name) == .orderedDescending
@@ -294,23 +333,30 @@ enum OutfitMatcher {
     }
 
     /// Adds the optional layer, belt and accessory that suit the outfit. Never changes score or order.
-    static func addingExtras(to suggestion: OutfitSuggestion, from wardrobe: [ClothingItem]) -> OutfitSuggestion {
+    static func addingExtras(
+        to suggestion: OutfitSuggestion, from wardrobe: [ClothingItem], preferences: StylePreferences = .none
+    ) -> OutfitSuggestion {
         var result = suggestion
-        if let layer = bestLayer(for: suggestion, in: wardrobe) {
+        if let layer = bestLayer(for: suggestion, in: wardrobe, preferences: preferences) {
             result.layer = layer
             result.extraReasons.append("The \(layer.name.lowercased()) works over it when it's cooler")
         }
-        if let (belt, matchesShoes) = bestBelt(for: suggestion, in: wardrobe) {
+        if let (belt, matchesShoes) = bestBelt(for: suggestion, in: wardrobe, preferences: preferences) {
             result.accessories.append(belt)
             result.extraReasons.append(matchesShoes
                 ? "The \(belt.name.lowercased()) matches your \(suggestion.shoes.name.lowercased())"
                 : "The \(belt.name.lowercased()) suits the \(suggestion.bottom?.name.lowercased() ?? "outfit")")
         }
-        if let accessory = bestAccessory(for: suggestion, in: wardrobe) {
+        if let accessory = bestAccessory(for: suggestion, in: wardrobe, preferences: preferences) {
             result.accessories.append(accessory)
             result.extraReasons.append("The \(accessory.name.lowercased()) finishes the look")
         }
         return result
+    }
+
+    /// Extras in a favourite colour win ties against equally good alternatives.
+    private static func favoriteColorBoost(_ item: ClothingItem, _ preferences: StylePreferences) -> Double {
+        preferences.favoriteColors.contains(item.primaryColor) ? favoriteColorBonus : 0
     }
 
     private static func dayPhrase(_ days: Int) -> String {

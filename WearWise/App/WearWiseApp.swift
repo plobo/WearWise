@@ -11,6 +11,7 @@ struct WearWiseApp: App {
                 .environment(dependencies.wardrobe)
                 .environment(dependencies.outfits)
                 .environment(dependencies.explanations)
+                .environment(dependencies.preferences)
                 .tint(Theme.accent)
         }
     }

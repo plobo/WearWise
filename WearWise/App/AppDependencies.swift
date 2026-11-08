@@ -9,6 +9,7 @@ final class AppDependencies {
     let wardrobe: WardrobeStore
     let outfits: OutfitStore
     let explanations: OutfitExplanationProvider
+    let preferences: PreferencesStore
     let analysisService: any ClothingAnalysisService
     let imageProcessor: ImageProcessor
     let segmenter: any ForegroundSegmenting
@@ -24,6 +25,7 @@ final class AppDependencies {
         imageProcessor: ImageProcessor = ImageProcessor(),
         segmenter: any ForegroundSegmenting = ForegroundSegmenter(),
         explanations: OutfitExplanationProvider? = nil,
+        preferences: PreferencesStore? = nil,
         storageWarning: String? = nil
     ) {
         self.container = container
@@ -35,6 +37,7 @@ final class AppDependencies {
         let outfits = OutfitStore(repository: SwiftDataOutfitRepository(container: container))
         self.outfits = outfits
         self.explanations = explanations ?? OutfitExplanationProvider()
+        self.preferences = preferences ?? PreferencesStore()
         wardrobe.onItemDeleted = { itemID in try outfits.removeOutfits(containing: itemID) }
         #if DEBUG
         DebugSampleWardrobe.seedIfRequested(wardrobe)
@@ -68,7 +71,8 @@ final class AppDependencies {
         return AppDependencies(
             container: try! ModelContainerFactory.make(inMemory: true),
             imageStore: LocalImageStore(baseDirectory: directory),
-            explanations: OutfitExplanationProvider(availabilityProvider: { .unknownUnavailable })
+            explanations: OutfitExplanationProvider(availabilityProvider: { .unknownUnavailable }),
+            preferences: PreferencesStore(defaults: UserDefaults(suiteName: "UITest-\(UUID().uuidString)")!)
         )
     }
     #endif

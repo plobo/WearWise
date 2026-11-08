@@ -54,6 +54,8 @@ struct MatchContext: Sendable {
     var lastWorn: [UUID: Date] = [:]
     var now: Date = .now
     var calendar: Calendar = .current
+    /// The user's taste; nudges order only.
+    var preferences: StylePreferences = .none
 
     /// Whole days between the day an item was last worn and today, or nil if never worn.
     func daysSinceWorn(_ itemID: UUID) -> Int? {
