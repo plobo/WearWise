@@ -69,17 +69,20 @@ final class OutfitStore {
 
     // MARK: Changes
 
-    func toggleSaved(_ key: OutfitKey) throws {
+    /// - Parameter layerID: The optional layer shown with the outfit, remembered when saving.
+    func toggleSaved(_ key: OutfitKey, layerID: UUID? = nil) throws {
         try mutate(key) { outfit in
+            if layerID != nil { outfit.layerID = layerID }
             outfit.isSaved.toggle()
             if outfit.isSaved { outfit.isHidden = false }
         }
     }
 
     /// Logs today's wear, or removes it if already logged today.
-    func toggleWornToday(_ key: OutfitKey) throws {
+    func toggleWornToday(_ key: OutfitKey, layerID: UUID? = nil) throws {
         let today = now()
         try mutate(key) { outfit in
+            if layerID != nil { outfit.layerID = layerID }
             if let index = outfit.wornDates.firstIndex(where: { calendar.isDate($0, inSameDayAs: today) }) {
                 outfit.wornDates.remove(at: index)
             } else {
@@ -112,6 +115,9 @@ final class OutfitStore {
     func removeOutfits(containing itemID: UUID) throws {
         try repository.deleteOutfits(containing: itemID)
         outfits.removeAll { $0.key.contains(itemID) }
+        for index in outfits.indices where outfits[index].layerID == itemID {
+            outfits[index].layerID = nil
+        }
     }
 
     /// Creates the record on first interaction, and drops it when it no longer holds any state.
@@ -140,21 +146,33 @@ final class OutfitStore {
 struct ResolvedOutfit: Identifiable, Hashable {
     let outfit: Outfit
     let top: ClothingItem
-    let bottom: ClothingItem
+    let bottom: ClothingItem?
     let shoes: ClothingItem
+    let layer: ClothingItem?
 
     var id: UUID { outfit.id }
-    var title: String { "\(top.name) + \(bottom.name) + \(shoes.name)" }
+    var pieces: [ClothingItem] { [top, bottom, shoes, layer].compactMap { $0 } }
 
-    /// Returns nil if any piece is no longer in the wardrobe, so missing clothes are never shown.
+    /// "Beige chinos + Brown loafers", or "Black dress + Black heels" for dress outfits.
+    var title: String {
+        if let bottom { return "\(bottom.name) + \(shoes.name)" }
+        return "\(top.name) + \(shoes.name)"
+    }
+
+    /// Returns nil if any core piece is no longer in the wardrobe, so missing clothes are never shown.
+    /// A missing layer is simply left out.
     init?(_ outfit: Outfit, wardrobe: [ClothingItem]) {
         func find(_ id: UUID) -> ClothingItem? { wardrobe.first { $0.id == id } }
-        guard let top = find(outfit.key.topID), let bottom = find(outfit.key.bottomID), let shoes = find(outfit.key.shoesID) else {
-            return nil
+        guard let top = find(outfit.key.topID), let shoes = find(outfit.key.shoesID) else { return nil }
+        var bottom: ClothingItem?
+        if let bottomID = outfit.key.bottomID {
+            guard let found = find(bottomID) else { return nil }
+            bottom = found
         }
         self.outfit = outfit
         self.top = top
         self.bottom = bottom
         self.shoes = shoes
+        layer = outfit.layerID.flatMap(find)
     }
 }

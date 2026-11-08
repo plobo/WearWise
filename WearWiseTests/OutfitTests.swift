@@ -106,7 +106,7 @@ struct OutfitStoreTests {
 
         let context = store.matchContext()
         #expect(context.daysSinceWorn(sharedShoes) == 0)
-        #expect(context.daysSinceWorn(key.bottomID) == 2)
+        #expect(context.daysSinceWorn(key.bottomID!) == 2)
         #expect(context.daysSinceWorn(UUID()) == nil)
     }
 }
@@ -179,14 +179,14 @@ struct MatchingWithHistoryTests {
     }
 
     @Test func baselineRanksChinosFirst() {
-        #expect(suggestions(context()).first?.bottom.id == chinos.id)
+        #expect(suggestions(context()).first?.bottom?.id == chinos.id)
     }
 
     @Test func hiddenCombinationIsNeverSuggested() {
         let hiddenKey = OutfitKey(topID: shirt.id, bottomID: chinos.id, shoesID: loafers.id)
         let list = suggestions(context(hidden: [hiddenKey]))
         #expect(!list.contains { $0.key == hiddenKey })
-        #expect(list.first?.bottom.id == greyTrousers.id)
+        #expect(list.first?.bottom?.id == greyTrousers.id)
     }
 
     @Test func allHiddenIsReportedSeparately() {
@@ -199,15 +199,15 @@ struct MatchingWithHistoryTests {
 
     @Test func pantsWornYesterdayRankLowerAndSaySo() {
         let list = suggestions(context(lastWorn: [chinos.id: 1]))
-        #expect(list.first?.bottom.id == greyTrousers.id)
-        let chinosOutfit = list.first { $0.bottom.id == chinos.id }
+        #expect(list.first?.bottom?.id == greyTrousers.id)
+        let chinosOutfit = list.first { $0.bottom?.id == chinos.id }
         #expect(chinosOutfit?.reasons.last == "You wore the beige chinos yesterday")
         #expect(chinosOutfit?.rating == "Great match", "Rating reflects fit, not recency")
     }
 
     @Test func pantsWornLongAgoAreNotPenalised() {
         let list = suggestions(context(lastWorn: [chinos.id: 5]))
-        #expect(list.first?.bottom.id == chinos.id)
+        #expect(list.first?.bottom?.id == chinos.id)
         #expect(list.first?.reasons.contains { $0.hasPrefix("You wore") } == false)
     }
 

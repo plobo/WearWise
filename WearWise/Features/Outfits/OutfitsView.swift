@@ -107,20 +107,22 @@ private struct OutfitRow: View {
     var body: some View {
         HStack(spacing: 12) {
             HStack(spacing: 4) {
-                ForEach([resolved.top, resolved.bottom, resolved.shoes]) { item in
+                ForEach(resolved.pieces) { item in
                     ItemThumbnail(item: item, padding: 4)
-                        .frame(width: 48, height: 48)
+                        .frame(width: thumbnailSize, height: thumbnailSize)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
             }
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
-                Text("\(resolved.bottom.name) + \(resolved.shoes.name)")
+                Text(resolved.title)
                     .font(.subheadline.weight(.medium))
                     .lineLimit(2)
-                Text("with \(resolved.top.name)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if let detail {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Text(wearSummary)
                     .font(.caption)
                     .foregroundStyle(wornToday ? Theme.accent : .secondary)
@@ -128,7 +130,17 @@ private struct OutfitRow: View {
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(resolved.top.name), \(resolved.bottom.name) and \(resolved.shoes.name). \(wearSummary)")
+        .accessibilityLabel("\(resolved.pieces.map(\.name).formatted(.list(type: .and))). \(wearSummary)")
+    }
+
+    private var thumbnailSize: CGFloat { resolved.pieces.count > 3 ? 38 : 48 }
+
+    /// "with Light blue oxford", plus the optional layer if there is one.
+    private var detail: String? {
+        var parts: [String] = []
+        if resolved.bottom != nil { parts.append("with \(resolved.top.name)") }
+        if let layer = resolved.layer { parts.append("\(layer.name) optional") }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private var wearSummary: String {

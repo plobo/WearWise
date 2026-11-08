@@ -17,8 +17,9 @@ enum DebugSampleWardrobe {
               let shoes = wardrobe.items.first(where: { $0.name == "Brown loafers" })
         else { return }
         let key = OutfitKey(topID: top.id, bottomID: bottom.id, shoesID: shoes.id)
-        try? outfits.toggleSaved(key)
-        try? outfits.toggleWornToday(key)
+        let layerID = wardrobe.items.first { $0.name == "Navy blazer" }?.id
+        try? outfits.toggleSaved(key, layerID: layerID)
+        try? outfits.toggleWornToday(key, layerID: layerID)
     }
 
     static func seedIfRequested(_ wardrobe: WardrobeStore) {
@@ -32,6 +33,9 @@ enum DebugSampleWardrobe {
             ("Beige chinos", .bottoms, .beige, .smartCasual, "figure.walk"),
             ("White tee", .tops, .white, .casual, "tshirt"),
             ("Light blue oxford", .tops, .lightBlue, .smartCasual, "tshirt"),
+            ("Navy blazer", .outerwear, .navy, .smartCasual, "hanger"),
+            ("Black heels", .shoes, .black, .formal, "shoe"),
+            ("Burgundy dress", .dresses, .burgundy, .smartCasual, "figure.stand.dress"),
         ]
         for (name, category, color, formality, symbol) in samples {
             var draft = ClothingDraft()

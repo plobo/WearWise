@@ -44,7 +44,7 @@ struct OutfitMatcherTests {
 
     @Test func bestMatchIsSameDressLevelWithGoodColours() {
         let best = suggestions(shirt, wardrobe).first
-        #expect(best?.bottom.id == chinos.id)
+        #expect(best?.bottom?.id == chinos.id)
         #expect(best?.shoes.id == loafers.id)
         #expect(best?.rating == "Great match")
         #expect(best?.reasons.contains("All smart casual") == true)
@@ -57,7 +57,7 @@ struct OutfitMatcherTests {
         for s in list {
             #expect(Set(s.itemIDs).isSubset(of: owned))
             #expect(s.top.id == shirt.id)
-            #expect(s.bottom.category == .bottoms)
+            #expect(s.bottom?.category == .bottoms)
             #expect(s.shoes.category == .shoes)
             #expect(OutfitMatcher.isValid(s, wardrobe: wardrobe))
         }
@@ -65,7 +65,7 @@ struct OutfitMatcherTests {
 
     @Test func neverMixesCasualWithFormal() {
         for s in suggestions(shirt, wardrobe) {
-            let levels = Set([s.top.formality, s.bottom.formality, s.shoes.formality])
+            let levels = Set([s.top.formality, s.bottom!.formality, s.shoes.formality])
             #expect(!(levels.contains(.casual) && levels.contains(.formal)))
         }
         #expect(OutfitMatcher.evaluate(top: shirt, bottom: suitTrousers, shoes: sneakers) == nil)
@@ -73,13 +73,13 @@ struct OutfitMatcherTests {
 
     @Test func clashingColoursAreLeftOut() {
         let list = suggestions(shirt, wardrobe)
-        #expect(!list.contains { $0.bottom.id == redJoggers.id && $0.shoes.id == runners.id })
+        #expect(!list.contains { $0.bottom?.id == redJoggers.id && $0.shoes.id == runners.id })
     }
 
     @Test func limitsResultsAndKeepsVariety() {
         let list = suggestions(shirt, wardrobe)
         #expect(list.count <= 5)
-        let bottomCounts = Dictionary(grouping: list, by: \.bottom.id).mapValues(\.count)
+        let bottomCounts = Dictionary(grouping: list, by: \.bottom?.id).mapValues(\.count)
         let shoeCounts = Dictionary(grouping: list, by: \.shoes.id).mapValues(\.count)
         #expect(bottomCounts.values.allSatisfy { $0 <= 2 })
         #expect(shoeCounts.values.allSatisfy { $0 <= 2 })

@@ -35,12 +35,12 @@ struct ClothingDetailView: View {
                     }
                 }
 
-                if item.category == .tops {
+                if OutfitMatcher.startingCategories.contains(item.category) {
                     Section {
                         NavigationLink {
                             MatchResultsView(topID: item.id)
                         } label: {
-                            Label("Find pants and shoes that match", systemImage: "sparkles")
+                            Label(item.category == .dresses ? "Find shoes that match" : "Find pants and shoes that match", systemImage: "sparkles")
                                 .fontWeight(.medium)
                         }
                     }

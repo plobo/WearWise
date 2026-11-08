@@ -8,7 +8,7 @@ protocol OutfitExplaining: Sendable {
 
 @Generable(description: "A short explanation of why an outfit works")
 struct GeneratedOutfitExplanation {
-    @Guide(description: "One or two sentences, at most 35 words, speaking to the wearer as 'you'. Mention only the three listed items.")
+    @Guide(description: "One or two sentences, at most 40 words, speaking to the wearer as 'you'. Mention only the listed items.")
     var text: String
 }
 
@@ -17,10 +17,11 @@ struct FoundationModelsOutfitExplainer: OutfitExplaining {
     static let instructions = """
     You are a concise personal stylist inside a wardrobe app.
     The app has already chosen an outfit from the user's own clothes. Explain why it works.
-    Use only the facts provided. Refer only to the three listed items, by name or as the top, pants and shoes.
-    Never suggest adding, swapping or layering any clothing.
+    Use only the facts provided. Refer only to the listed items, by name or by their role.
+    An "Optional layer" may be mentioned as something to wear over the outfit when it's cooler.
+    Never suggest any other clothing, and never suggest swapping pieces.
     Never mention brands, materials, fabrics, prices, sizes or fit.
-    Write one or two warm, specific sentences, at most 35 words. No emojis, no lists.
+    Write one or two warm, specific sentences, at most 40 words. No emojis, no lists.
     """
 
     func explain(_ input: OutfitExplanationInput) async throws -> String {

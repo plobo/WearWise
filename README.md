@@ -2,7 +2,7 @@
 
 **Know your wardrobe. Discover your style.**
 
-WearWise is a privacy-first iOS app that helps you decide what to wear using the clothes you already own. Photograph your tops, pants and shoes once. Then pick a shirt and WearWise suggests which pants and shoes from your closet go with it.
+WearWise is a privacy-first iOS app that helps you decide what to wear using the clothes you already own. Photograph your clothes once. Then pick a top or a dress and WearWise suggests what from your closet goes with it: pants and shoes, plus a jacket when one suits the outfit.
 
 Everything runs on your iPhone. There's no account, no backend, no cloud storage and no third-party AI service.
 
@@ -16,7 +16,7 @@ Everything runs on your iPhone. There's no account, no backend, no cloud storage
 ## What it does
 
 - **Builds your closet from photos.** Take a photo or choose one from your library. WearWise suggests a name, category, colours, pattern and how casual or formal the item is. You confirm or correct every value before it's saved.
-- **Matches outfits.** Pick a top and get up to five ready-made pants + shoes combinations, best first, each with a short reason ("Beige pants keep the light blue top in focus. Brown shoes keep it grounded. All smart casual.").
+- **Matches outfits.** Pick a top and get up to five ready-made pants + shoes combinations, or pick a dress and get shoes, best first. A jacket or coat is added as an optional layer when it pairs well, each with a short reason ("Beige pants keep the light blue top in focus. Brown shoes keep it grounded. All smart casual.").
 - **Only suggests what you own.** Every suggestion is checked against your wardrobe before it's shown. If you don't have the pieces, it tells you what to add instead of making something up.
 - **Keeps working without AI.** If Apple Intelligence is off or unsupported, analysis falls back to Apple's Vision framework, and you can always enter details yourself. Outfit matching never needs AI.
 
@@ -50,6 +50,8 @@ Matching is plain, deterministic app logic (`OutfitMatcher`):
 - **Colour harmony.** Neutrals pair easily. Some neutral pairs are avoided (black + navy, black + brown). A short list of colour pairs that work (light blue + pink, olive + burgundy, …) is allowed. Other strong-colour combinations score low.
 - **Formality.** Casual, smart casual and formal must be within one step of each other, so casual is never mixed with formal.
 - **Variety.** No pants or shoes appear more than twice in one set of results.
+- **Dresses.** A dress is matched with shoes alone, on the same colour and formality rules.
+- **Optional layer.** The outerwear item that pairs best with the top and the pants (or the dress and the shoes) is suggested if its colours work and its formality is within one step. It never changes the ranking.
 - **Your history.** Combinations you marked "Not for me" are never suggested again. Pants worn in the last two days, and shoes worn yesterday, rank lower. This only reorders suggestions and never lowers the rating.
 - **Validation.** Every item ID must exist in the wardrobe and be in the right role. Deleting a piece of clothing also deletes the saved outfits that used it.
 
@@ -118,7 +120,7 @@ xcodegen generate
 
 In debug builds you can launch with sample items instead of photographing your own. Add these under **Product → Scheme → Edit Scheme → Run → Arguments**:
 
-- `-seedSampleWardrobe` fills an empty wardrobe with sample tops, pants and shoes.
+- `-seedSampleWardrobe` fills an empty wardrobe with sample tops, pants, shoes, a blazer and a dress.
 - `-openFirstMatch` opens match results for a sample top straight away.
 - `-openOutfits` opens the Outfits tab. With `-seedSampleWardrobe`, one sample outfit is saved and logged as worn today.
 
@@ -147,12 +149,13 @@ Built so far:
 - [x] Background removal and colour detection from the item only
 - [x] Save outfits, hide suggestions ("Not for me"), log what you wore; recently worn pants rank lower
 - [x] AI-written outfit explanations, validated against the chosen items
+- [x] Dresses as a starting piece, and an optional jacket or coat in suggestions
 
 Next:
 
 - [ ] Tune the colour rules against real wardrobes
 - [ ] Remove the background from items added before cut-outs existed
-- [ ] Outerwear and accessories in suggestions, and dresses as a starting piece
+- [ ] Accessories in suggestions
 - [ ] Wardrobe insights
 
 The full product plan is in [`requirements/WearWise_Implementation_Plan.md`](requirements/WearWise_Implementation_Plan.md).

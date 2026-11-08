@@ -15,13 +15,15 @@ struct OutfitExplanationInput: Sendable, Hashable {
     let reasons: [String]
 
     init(_ suggestion: OutfitSuggestion) {
-        pieces = [
-            Piece(role: "Top", item: suggestion.top),
-            Piece(role: "Pants", item: suggestion.bottom),
-            Piece(role: "Shoes", item: suggestion.shoes),
-        ]
+        var pieces = [Piece(role: suggestion.isDressOutfit ? "Dress" : "Top", item: suggestion.top)]
+        if let bottom = suggestion.bottom { pieces.append(Piece(role: "Pants", item: bottom)) }
+        pieces.append(Piece(role: "Shoes", item: suggestion.shoes))
+        if let layer = suggestion.layer { pieces.append(Piece(role: "Optional layer", item: layer)) }
+        self.pieces = pieces
         reasons = suggestion.reasons
     }
+
+    var hasLayer: Bool { pieces.contains { $0.category == .outerwear } }
 
     var fallbackText: String { reasons.joined(separator: ". ") + "." }
 }
@@ -38,12 +40,14 @@ enum OutfitExplanationValidator {
     static let maxLength = 300
 
     /// Clothing words the model might use to introduce a piece that isn't in the outfit.
+    /// Words that are also common verbs or adjectives in styling talk ("suits you", "ties it together",
+    /// "short and sweet") are deliberately left out to avoid rejecting good explanations.
     static let garmentWords: Set<String> = [
         "jacket", "blazer", "coat", "parka", "cardigan", "sweater", "jumper", "hoodie", "sweatshirt", "vest",
-        "belt", "tie", "scarf", "hat", "cap", "watch", "bag", "sock", "glove", "sunglasses", "jewelry", "necklace",
+        "belt", "necktie", "scarf", "hat", "cap", "bag", "sock", "glove", "sunglasses", "jewelry", "necklace",
         "boot", "sneaker", "trainer", "loafer", "oxford", "heel", "sandal", "slipper", "brogue", "derby",
-        "short", "skirt", "dress", "jean", "chino", "trouser", "jogger", "legging", "suit",
-        "shirt", "tee", "polo", "blouse", "tank",
+        "skirt", "dress", "jean", "chino", "trouser", "jogger", "legging",
+        "shirt", "tee", "polo", "blouse",
     ]
 
     /// Fabric claims can't be made from a photo.
@@ -62,6 +66,8 @@ enum OutfitExplanationValidator {
         case .tops: ["top", "shirt"]
         case .bottoms: ["pant", "trouser", "bottom"]
         case .shoes: ["shoe", "footwear"]
+        case .dresses: ["dress"]
+        case .outerwear: ["layer", "jacket", "coat"]
         default: []
         }
     }
@@ -77,7 +83,10 @@ enum OutfitExplanationValidator {
 
         let lower = text.lowercased()
         if lower.contains(where: { "$€£¥".contains($0) }) { return nil }
-        if changePhrases.contains(where: { lower.contains($0) }) { return nil }
+        // With a suggested layer, "add the jacket" or "layer it" describes the app's own choice.
+        let layerPhrases: Set<String> = ["add a", "add an", "layer"]
+        let phrases = input.hasLayer ? changePhrases.filter { !layerPhrases.contains($0) } : changePhrases
+        if phrases.contains(where: { lower.contains($0) }) { return nil }
 
         // Words the outfit itself justifies.
         var allowed = Set<String>()

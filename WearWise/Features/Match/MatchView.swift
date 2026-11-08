@@ -26,7 +26,7 @@ struct MatchView: View {
                 }
                 .sheet(isPresented: $showingAdd) {
                     AddClothingView { item in
-                        if item.category == .tops { path = [item.id] }
+                        if OutfitMatcher.startingCategories.contains(item.category) { path = [item.id] }
                     }
                 }
         }
@@ -42,23 +42,23 @@ struct MatchView: View {
 
     @ViewBuilder
     private var content: some View {
-        let tops = wardrobe.items.filter { $0.category == .tops }
+        let tops = wardrobe.items.filter { OutfitMatcher.startingCategories.contains($0.category) }
         if tops.isEmpty {
             ContentUnavailableView {
-                Label("No tops yet", systemImage: "tshirt")
+                Label("No tops or dresses yet", systemImage: "tshirt")
             } description: {
-                Text("Add a shirt or other top, plus some pants and shoes, and WearWise will suggest what goes together.")
+                Text("Add a top with some pants and shoes, or a dress with shoes, and WearWise will suggest what goes together.")
             } actions: {
-                Button("Add a top") { showingAdd = true }
+                Button("Add clothing") { showingAdd = true }
                     .buttonStyle(.borderedProminent)
             }
         } else {
             ScrollView {
-                Text("Which top are you wearing?")
+                Text("What are you starting with?")
                     .font(.title3.weight(.semibold))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
-                Text("Suggestions only use pants and shoes you own.")
+                Text("Pick a top or a dress. Suggestions only use clothes you own.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -99,7 +99,7 @@ struct MatchResultsView: View {
                 .animation(.default, value: outfits.outfits)
                 .animation(.easeInOut, value: explanations.states)
             }
-            .navigationTitle("Match this top")
+            .navigationTitle(top.category == .dresses ? "Match this dress" : "Match this top")
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom) { undoBanner }
             .alert("Something went wrong", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
@@ -145,8 +145,8 @@ struct MatchResultsView: View {
                     explanation: explanations.state(for: suggestion),
                     isSaved: outfits.isSaved(suggestion.key),
                     isWornToday: outfits.isWornToday(suggestion.key),
-                    onSave: { perform { try outfits.toggleSaved(suggestion.key) } },
-                    onWore: { perform { try outfits.toggleWornToday(suggestion.key) } },
+                    onSave: { perform { try outfits.toggleSaved(suggestion.key, layerID: suggestion.layer?.id) } },
+                    onWore: { perform { try outfits.toggleWornToday(suggestion.key, layerID: suggestion.layer?.id) } },
                     onHide: {
                         perform {
                             try outfits.hide(suggestion.key)
@@ -169,13 +169,15 @@ struct MatchResultsView: View {
             ContentUnavailableView(
                 "No strong matches",
                 systemImage: "circle.slash",
-                description: Text("None of your pants and shoes go well with this top on colour or how casual or formal they are.")
+                description: Text(top.category == .dresses
+                    ? "None of your shoes go well with this dress on colour or how casual or formal they are."
+                    : "None of your pants and shoes go well with this top on colour or how casual or formal they are.")
             )
         case .allHidden:
             ContentUnavailableView(
                 "All matches hidden",
                 systemImage: "eye.slash",
-                description: Text("You've hidden every good match for this top. Restore them from Hidden suggestions in the Outfits tab.")
+                description: Text("You've hidden every good match for this \(top.category == .dresses ? "dress" : "top"). Restore them from Hidden suggestions in the Outfits tab.")
             )
         }
     }
@@ -220,10 +222,21 @@ private struct OutfitCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                OutfitPiece(item: suggestion.bottom)
-                Image(systemName: "plus").foregroundStyle(.secondary).accessibilityHidden(true)
-                OutfitPiece(item: suggestion.shoes)
+            HStack(alignment: .top, spacing: 8) {
+                if let bottom = suggestion.bottom {
+                    OutfitPiece(item: bottom, maxWidth: pieceWidth)
+                    plus
+                }
+                OutfitPiece(item: suggestion.shoes, maxWidth: pieceWidth)
+                if let layer = suggestion.layer {
+                    plus
+                    VStack(spacing: 4) {
+                        OutfitPiece(item: layer, maxWidth: pieceWidth)
+                        Text("Optional")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             HStack {
                 Text(suggestion.title).font(.headline)
@@ -253,6 +266,15 @@ private struct OutfitCard: View {
         .padding(12)
         .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
         .accessibilityElement(children: .contain)
+    }
+
+    private var pieceWidth: CGFloat { suggestion.layer == nil ? 120 : 92 }
+
+    private var plus: some View {
+        Image(systemName: "plus")
+            .foregroundStyle(.secondary)
+            .frame(maxHeight: pieceWidth)
+            .accessibilityHidden(true)
     }
 
     /// Rule-based reasons show at once; validated AI text replaces them when ready.

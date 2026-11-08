@@ -1,12 +1,15 @@
 import Foundation
 
-/// Identifies one top + pants + shoes combination.
+/// Identifies one core combination: a top + pants + shoes, or a dress + shoes.
+/// The optional outer layer is not part of the key, so adding a jacket later keeps saved state.
 struct OutfitKey: Hashable, Sendable {
+    /// The starting piece: a top or a dress.
     let topID: UUID
-    let bottomID: UUID
+    /// Nil for dress outfits.
+    let bottomID: UUID?
     let shoesID: UUID
 
-    var itemIDs: [UUID] { [topID, bottomID, shoesID] }
+    var itemIDs: [UUID] { [topID, bottomID, shoesID].compactMap { $0 } }
 
     func contains(_ itemID: UUID) -> Bool { itemIDs.contains(itemID) }
 }
@@ -15,6 +18,8 @@ struct OutfitKey: Hashable, Sendable {
 struct Outfit: Identifiable, Hashable, Sendable {
     let id: UUID
     let key: OutfitKey
+    /// Outer layer shown with the outfit when it was saved or worn.
+    var layerID: UUID?
     var isSaved: Bool
     /// "Not for me": never suggested again until restored.
     var isHidden: Bool
@@ -36,6 +41,7 @@ protocol OutfitRepository: AnyObject {
     func insert(_ outfit: Outfit) throws
     func update(_ outfit: Outfit) throws
     func delete(id: UUID) throws
+    /// Deletes outfits whose core pieces include the item, and clears it where it was only the layer.
     func deleteOutfits(containing itemID: UUID) throws
 }
 
