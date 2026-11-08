@@ -7,6 +7,19 @@ import UIKit
 enum DebugSampleWardrobe {
     static var shouldSeed: Bool { ProcessInfo.processInfo.arguments.contains("-seedSampleWardrobe") }
     static var shouldOpenFirstMatch: Bool { ProcessInfo.processInfo.arguments.contains("-openFirstMatch") }
+    static var shouldOpenOutfits: Bool { ProcessInfo.processInfo.arguments.contains("-openOutfits") }
+
+    /// Saves the sample smart-casual outfit and logs it as worn today.
+    static func seedOutfitsIfRequested(_ outfits: OutfitStore, wardrobe: WardrobeStore) {
+        guard shouldSeed, outfits.outfits.isEmpty,
+              let top = wardrobe.items.first(where: { $0.name == "Light blue oxford" }),
+              let bottom = wardrobe.items.first(where: { $0.name == "Beige chinos" }),
+              let shoes = wardrobe.items.first(where: { $0.name == "Brown loafers" })
+        else { return }
+        let key = OutfitKey(topID: top.id, bottomID: bottom.id, shoesID: shoes.id)
+        try? outfits.toggleSaved(key)
+        try? outfits.toggleWornToday(key)
+    }
 
     static func seedIfRequested(_ wardrobe: WardrobeStore) {
         guard shouldSeed, wardrobe.items.isEmpty else { return }

@@ -83,6 +83,9 @@ struct MatchResultsView: View {
     let topID: UUID
 
     @Environment(WardrobeStore.self) private var wardrobe
+    @Environment(OutfitStore.self) private var outfits
+    @State private var lastHidden: OutfitKey?
+    @State private var errorMessage: String?
 
     var body: some View {
         if let top = wardrobe.item(id: topID) {
@@ -92,9 +95,16 @@ struct MatchResultsView: View {
                     results(for: top)
                 }
                 .padding()
+                .animation(.default, value: outfits.outfits)
             }
             .navigationTitle("Match this top")
             .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) { undoBanner }
+            .alert("Something went wrong", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         } else {
             ContentUnavailableView("Item not found", systemImage: "questionmark.square.dashed")
         }
@@ -123,12 +133,24 @@ struct MatchResultsView: View {
 
     @ViewBuilder
     private func results(for top: ClothingItem) -> some View {
-        switch OutfitMatcher.match(top: top, wardrobe: wardrobe.items) {
+        switch OutfitMatcher.match(top: top, wardrobe: wardrobe.items, context: outfits.matchContext()) {
         case .suggestions(let suggestions):
             Text("Best outfits from your closet")
                 .font(.title3.weight(.semibold))
             ForEach(suggestions) { suggestion in
-                OutfitCard(suggestion: suggestion)
+                OutfitCard(
+                    suggestion: suggestion,
+                    isSaved: outfits.isSaved(suggestion.key),
+                    isWornToday: outfits.isWornToday(suggestion.key),
+                    onSave: { perform { try outfits.toggleSaved(suggestion.key) } },
+                    onWore: { perform { try outfits.toggleWornToday(suggestion.key) } },
+                    onHide: {
+                        perform {
+                            try outfits.hide(suggestion.key)
+                            lastHidden = suggestion.key
+                        }
+                    }
+                )
             }
         case .missingPieces(let needsBottoms, let needsShoes):
             let missing = [needsBottoms ? "pants" : nil, needsShoes ? "shoes" : nil].compactMap { $0 }.joined(separator: " and ")
@@ -143,19 +165,58 @@ struct MatchResultsView: View {
                 systemImage: "circle.slash",
                 description: Text("None of your pants and shoes go well with this top on colour or how casual or formal they are.")
             )
+        case .allHidden:
+            ContentUnavailableView(
+                "All matches hidden",
+                systemImage: "eye.slash",
+                description: Text("You've hidden every good match for this top. Restore them from Hidden suggestions in the Outfits tab.")
+            )
         }
+    }
+
+    @ViewBuilder
+    private var undoBanner: some View {
+        if let key = lastHidden {
+            HStack {
+                Text("Outfit hidden. It won't be suggested again.")
+                    .font(.subheadline)
+                Spacer()
+                Button("Undo") {
+                    perform { try outfits.unhide(key) }
+                    lastHidden = nil
+                }
+                .fontWeight(.semibold)
+            }
+            .padding()
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
+            .padding(.horizontal)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .task(id: key) {
+                try? await Task.sleep(for: .seconds(5))
+                if lastHidden == key { withAnimation { lastHidden = nil } }
+            }
+        }
+    }
+
+    private func perform(_ action: () throws -> Void) {
+        do { try action() } catch { errorMessage = error.localizedDescription }
     }
 }
 
 private struct OutfitCard: View {
     let suggestion: OutfitSuggestion
+    let isSaved: Bool
+    let isWornToday: Bool
+    let onSave: () -> Void
+    let onWore: () -> Void
+    let onHide: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                piece(suggestion.bottom)
+                OutfitPiece(item: suggestion.bottom)
                 Image(systemName: "plus").foregroundStyle(.secondary).accessibilityHidden(true)
-                piece(suggestion.shoes)
+                OutfitPiece(item: suggestion.shoes)
             }
             HStack {
                 Text(suggestion.title).font(.headline)
@@ -169,19 +230,49 @@ private struct OutfitCard: View {
             Text(suggestion.reasons.joined(separator: ". ") + ".")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                actionButton(isSaved ? "Saved" : "Save", systemImage: isSaved ? "bookmark.fill" : "bookmark", active: isSaved, action: onSave)
+                actionButton(isWornToday ? "Worn today" : "Wore today", systemImage: isWornToday ? "checkmark.circle.fill" : "checkmark.circle", active: isWornToday, action: onWore)
+                Spacer()
+                Button(action: onHide) {
+                    Label("Not for me", systemImage: "hand.thumbsdown")
+                        .labelStyle(.iconOnly)
+                        .padding(8)
+                }
+                .buttonStyle(.bordered)
+                .clipShape(Circle())
+                .accessibilityLabel("Not for me")
+                .accessibilityHint("Hides this outfit from suggestions")
+            }
         }
         .padding(12)
         .background(Theme.cardBackground, in: RoundedRectangle(cornerRadius: Theme.cornerRadius))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 
-    private func piece(_ item: ClothingItem) -> some View {
+    private func actionButton(_ title: String, systemImage: String, active: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.medium))
+        }
+        .buttonStyle(.bordered)
+        .tint(active ? Theme.accent : .secondary)
+        .accessibilityAddTraits(active ? .isSelected : [])
+    }
+}
+
+/// A tappable thumbnail that opens the item.
+struct OutfitPiece: View {
+    let item: ClothingItem
+    var maxWidth: CGFloat = 120
+
+    var body: some View {
         NavigationLink {
             ClothingDetailView(itemID: item.id)
         } label: {
             Color.clear
                 .aspectRatio(1, contentMode: .fit)
-                .frame(maxWidth: 120)
+                .frame(maxWidth: maxWidth)
                 .overlay { ItemThumbnail(item: item) }
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         }

@@ -50,7 +50,8 @@ Matching is plain, deterministic app logic (`OutfitMatcher`):
 - **Colour harmony.** Neutrals pair easily. Some neutral pairs are avoided (black + navy, black + brown). A short list of colour pairs that work (light blue + pink, olive + burgundy, …) is allowed. Other strong-colour combinations score low.
 - **Formality.** Casual, smart casual and formal must be within one step of each other, so casual is never mixed with formal.
 - **Variety.** No pants or shoes appear more than twice in one set of results.
-- **Validation.** Every item ID must exist in the wardrobe and be in the right role.
+- **Your history.** Combinations you marked "Not for me" are never suggested again. Pants worn in the last two days, and shoes worn yesterday, rank lower. This only reorders suggestions and never lowers the rating.
+- **Validation.** Every item ID must exist in the wardrobe and be in the right role. Deleting a piece of clothing also deletes the saved outfits that used it.
 
 ## Tech stack
 
@@ -108,6 +109,7 @@ In debug builds you can launch with sample items instead of photographing your o
 
 - `-seedSampleWardrobe` fills an empty wardrobe with sample tops, pants and shoes.
 - `-openFirstMatch` opens match results for a sample top straight away.
+- `-openOutfits` opens the Outfits tab. With `-seedSampleWardrobe`, one sample outfit is saved and logged as worn today.
 
 ### Tests
 
@@ -132,13 +134,13 @@ Built so far:
 - [x] Wardrobe catalogue: add, review, edit, delete, search, filter, favourites
 - [x] Pick a top → matching pants and shoes from your closet
 - [x] Background removal and colour detection from the item only
+- [x] Save outfits, hide suggestions ("Not for me"), log what you wore; recently worn pants rank lower
 
 Next:
 
 - [ ] Tune the colour rules against real wardrobes
 - [ ] Remove the background from items added before cut-outs existed
 - [ ] AI-written "why this works" explanations, validated against owned items
-- [ ] Save outfits and give feedback on suggestions
 - [ ] Outerwear and accessories in suggestions, and dresses as a starting piece
 - [ ] Wardrobe insights
 

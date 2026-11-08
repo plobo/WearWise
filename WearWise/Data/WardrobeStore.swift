@@ -9,6 +9,8 @@ final class WardrobeStore {
     private(set) var loadError: String?
 
     let imageStore: LocalImageStore
+    /// Called after an item is deleted, e.g. to remove outfits that used it.
+    @ObservationIgnored var onItemDeleted: (@MainActor (UUID) throws -> Void)?
     private let repository: any ClothingRepository
     private let now: @MainActor () -> Date
 
@@ -113,6 +115,7 @@ final class WardrobeStore {
     func delete(_ item: ClothingItem) throws {
         try repository.delete(id: item.id)
         items.removeAll { $0.id == item.id }
+        try? onItemDeleted?(item.id)
         for path in [item.imagePath, item.thumbnailPath, item.cutoutPath].compactMap({ $0 }) {
             try? imageStore.delete(path)
         }

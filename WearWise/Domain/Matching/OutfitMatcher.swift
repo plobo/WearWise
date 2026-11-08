@@ -36,12 +36,24 @@ struct OutfitSuggestion: Identifiable, Equatable, Sendable {
     let top: ClothingItem
     let bottom: ClothingItem
     let shoes: ClothingItem
-    /// 0...1
+    /// How well the pieces go together, 0...1. Drives the rating and the minimum-quality cut-off.
     let score: Double
     let reasons: [String]
+    /// Ordering score: `score` lowered for recently worn pieces. Equal to `score` without history.
+    var rankScore: Double
+
+    init(top: ClothingItem, bottom: ClothingItem, shoes: ClothingItem, score: Double, reasons: [String], rankScore: Double? = nil) {
+        self.top = top
+        self.bottom = bottom
+        self.shoes = shoes
+        self.score = score
+        self.reasons = reasons
+        self.rankScore = rankScore ?? score
+    }
 
     var id: String { "\(bottom.id.uuidString)-\(shoes.id.uuidString)" }
     var itemIDs: [UUID] { [top.id, bottom.id, shoes.id] }
+    var key: OutfitKey { OutfitKey(topID: top.id, bottomID: bottom.id, shoesID: shoes.id) }
 
     var title: String { "\(bottom.name) + \(shoes.name)" }
 
@@ -60,13 +72,26 @@ enum MatchResult: Equatable, Sendable {
     case missingPieces(needsBottoms: Bool, needsShoes: Bool)
     /// Pieces exist but none go together well enough.
     case noGoodMatches
+    /// Every good match for this top was hidden by the user.
+    case allHidden
 }
 
 /// Suggests pants + shoes for a top, using only items in the wardrobe.
 enum OutfitMatcher {
     static let minimumScore = 0.6
 
-    static func match(top: ClothingItem, wardrobe: [ClothingItem], limit: Int = 5) -> MatchResult {
+    /// Pants worn this recently (in days) are ranked lower, and shoes slightly lower.
+    static let recentBottomDays = 2
+    static let recentShoesDays = 1
+    static let recentBottomPenalty = 0.12
+    static let recentShoesPenalty = 0.04
+
+    static func match(
+        top: ClothingItem,
+        wardrobe: [ClothingItem],
+        context: MatchContext = MatchContext(),
+        limit: Int = 5
+    ) -> MatchResult {
         let bottoms = wardrobe.filter { $0.category == .bottoms && $0.id != top.id }
         let shoes = wardrobe.filter { $0.category == .shoes && $0.id != top.id }
         if bottoms.isEmpty || shoes.isEmpty {
@@ -76,12 +101,16 @@ enum OutfitMatcher {
         var candidates: [OutfitSuggestion] = []
         for bottom in bottoms {
             for shoe in shoes {
-                guard let suggestion = evaluate(top: top, bottom: bottom, shoes: shoe), suggestion.score >= minimumScore else { continue }
+                let key = OutfitKey(topID: top.id, bottomID: bottom.id, shoesID: shoe.id)
+                guard !context.hidden.contains(key),
+                      let suggestion = evaluate(top: top, bottom: bottom, shoes: shoe, context: context),
+                      suggestion.score >= minimumScore
+                else { continue }
                 candidates.append(suggestion)
             }
         }
         candidates.sort { a, b in
-            if a.score != b.score { return a.score > b.score }
+            if a.rankScore != b.rankScore { return a.rankScore > b.rankScore }
             return a.title.localizedStandardCompare(b.title) == .orderedAscending
         }
 
@@ -97,11 +126,21 @@ enum OutfitMatcher {
         }
 
         let valid = picked.filter { isValid($0, wardrobe: wardrobe) }
-        return valid.isEmpty ? .noGoodMatches : .suggestions(valid)
+        if valid.isEmpty {
+            // Everything that matched was hidden by the user: say so rather than "no matches".
+            let anyHidden = context.hidden.contains { $0.topID == top.id }
+            return anyHidden ? .allHidden : .noGoodMatches
+        }
+        return .suggestions(valid)
     }
 
     /// Scores one combination, or nil if the dress levels are too far apart.
-    static func evaluate(top: ClothingItem, bottom: ClothingItem, shoes: ClothingItem) -> OutfitSuggestion? {
+    static func evaluate(
+        top: ClothingItem,
+        bottom: ClothingItem,
+        shoes: ClothingItem,
+        context: MatchContext = MatchContext()
+    ) -> OutfitSuggestion? {
         let levels = [top, bottom, shoes].map { level($0.formality) }
         let spread = levels.max()! - levels.min()!
         guard spread < 2 else { return nil }
@@ -114,13 +153,32 @@ enum OutfitMatcher {
         let favoriteBonus = [bottom, shoes].filter(\.isFavorite).isEmpty ? 0 : 0.02
         let score = min(1, 0.6 * colorScore + 0.4 * formalityScore + favoriteBonus)
 
+        var reasonList = reasons(top: top, bottom: bottom, shoes: shoes, topBottom: topBottom, bottomShoes: bottomShoes, spread: spread)
+        var penalty = 0.0
+        if let days = context.daysSinceWorn(bottom.id), days <= recentBottomDays {
+            penalty += recentBottomPenalty
+            reasonList.append("You wore the \(bottom.name.lowercased()) \(dayPhrase(days))")
+        }
+        if let days = context.daysSinceWorn(shoes.id), days <= recentShoesDays {
+            penalty += recentShoesPenalty
+        }
+
         return OutfitSuggestion(
             top: top,
             bottom: bottom,
             shoes: shoes,
             score: score,
-            reasons: reasons(top: top, bottom: bottom, shoes: shoes, topBottom: topBottom, bottomShoes: bottomShoes, spread: spread)
+            reasons: reasonList,
+            rankScore: max(0, score - penalty)
         )
+    }
+
+    private static func dayPhrase(_ days: Int) -> String {
+        switch days {
+        case ...0: "today"
+        case 1: "yesterday"
+        default: "\(days) days ago"
+        }
     }
 
     /// Critical rule: every suggested item must exist in the wardrobe, with the right roles and no repeats.

@@ -9,6 +9,7 @@ struct WearWiseApp: App {
             RootTabView()
                 .environment(dependencies)
                 .environment(dependencies.wardrobe)
+                .environment(dependencies.outfits)
                 .tint(Theme.accent)
         }
     }

@@ -7,6 +7,7 @@ struct RootTabView: View {
     static var initialTab: Int {
         #if DEBUG
         if DebugSampleWardrobe.shouldOpenFirstMatch { return 1 }
+        if DebugSampleWardrobe.shouldOpenOutfits { return 2 }
         #endif
         return 0
     }
@@ -19,7 +20,10 @@ struct RootTabView: View {
             Tab("Match", systemImage: "sparkles.rectangle.stack", value: 1) {
                 MatchView()
             }
-            Tab("Profile", systemImage: "person.crop.circle", value: 2) {
+            Tab("Outfits", systemImage: "bookmark", value: 2) {
+                OutfitsView()
+            }
+            Tab("Profile", systemImage: "person.crop.circle", value: 3) {
                 ProfileView()
             }
         }

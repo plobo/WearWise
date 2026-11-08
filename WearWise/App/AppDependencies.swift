@@ -7,6 +7,7 @@ import SwiftData
 @Observable
 final class AppDependencies {
     let wardrobe: WardrobeStore
+    let outfits: OutfitStore
     let analysisService: any ClothingAnalysisService
     let imageProcessor: ImageProcessor
     let segmenter: any ForegroundSegmenting
@@ -29,8 +30,12 @@ final class AppDependencies {
         self.segmenter = segmenter
         self.storageWarning = storageWarning
         wardrobe = WardrobeStore(repository: SwiftDataClothingRepository(container: container), imageStore: imageStore)
+        let outfits = OutfitStore(repository: SwiftDataOutfitRepository(container: container))
+        self.outfits = outfits
+        wardrobe.onItemDeleted = { itemID in try outfits.removeOutfits(containing: itemID) }
         #if DEBUG
         DebugSampleWardrobe.seedIfRequested(wardrobe)
+        DebugSampleWardrobe.seedOutfitsIfRequested(outfits, wardrobe: wardrobe)
         #endif
     }
 
